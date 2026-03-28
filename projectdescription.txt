@@ -1,0 +1,264 @@
+# Application Development Specification: FacelessStudio
+
+## Project Overview
+Build a serverless web platform called "FacelessVidStudio" that enables users to create content for faceless YouTube videos and generate scripts. This is NOT a video editing platform or general AI platform. The focus is on content organization, story creation, and script generation for YouTube channels.
+
+
+channels table
+- id: uuid (primary key)
+- user_id: uuid (references users.id)
+- name: text
+- description: text
+- created_at: timestamp
+- updated_at: timestamp
+
+
+topics table
+- id: uuid (primary key)
+- user_id: uuid (references users.id)
+- channel_id: uuid (references channels.id)
+- name: text
+- description: text
+- created_at: timestamp
+- updated_at: timestamp
+
+
+stories table
+- id: uuid (primary key)
+- user_id: uuid (references users.id)
+- channel_id: uuid (references channels.id)
+- topic_id: uuid (references topics.id)
+- title: text
+- content: text
+- script_generated: boolean (default: false)
+- generated_script: text
+- created_at: timestamp
+- updated_at: timestamp
+
+
+- id: uuid (primary key)
+- story_id: uuid (references stories.id)
+- image_url: text
+- is_ai_generated: boolean
+- order_index: integer
+- created_at: timestamp
+- updated_at: timestamp
+
+Supabase Storage Buckets
+story-images: For storing user-uploaded and AI-generated images
+
+Bucket policy: Authenticated users can only access their own files
+
+
+Application Pages & Flow
+1. Homepage (/)
+Public landing page
+
+Navigation to Login/Register
+
+Full description of FacelessVidStudio
+
+2. Registration Page (/register)
+Form fields: first_name, last_name, email, password
+
+Client-side validation of inputs
+also the route before storing to the database
+use bcrypt to encrypt password
+
+On success: redirect to /login with success toast
+
+Use react-hot-toast for notifications
+
+3. Login Page (/login)
+Form fields: email, password
+
+Authentication against users table
+
+On success: redirect to /dashboard with welcome toast
+
+Store session in secure HTTP-only cookies
+
+4. Dashboard Layout (/dashboard)
+Protected route (requires authentication)
+
+Sidebar navigation with:
+
+Home Screen
+
+Channels
+
+User profile/logout
+
+5. Dashboard Home (/dashboard)
+Welcome message
+
+Quick stats (channel count, topic count, story count)
+
+Recent activity
+
+6. Channels Page (/dashboard/channels)
+List all user's channels (from channels table)
+
+"Create New Channel" button if no channels exist
+
+Each channel card shows: name, description, topic count
+
+Clicking a channel navigates to: /dashboard/channels/[channel_name]
+
+7. Single Channel Page (/dashboard/channels/[channel_name])
+Channel details at top
+
+"Create New Topic" button
+
+List of topics under this channel
+
+Each topic card shows: name, description, story count
+
+Clicking a topic navigates to: /dashboard/channels/[channel_name]/topics/[topic_name]
+
+8. Create Channel Page (/dashboard/channels/new)
+Form fields: name, description
+
+On submit: create in channels table, show success toast, redirect to channels list
+
+9. Single Topic Page (/dashboard/channels/[channel_name]/topics/[topic_name])
+Topic details at top
+
+"Create New Story" button
+
+List of stories under this topic
+
+Each story shows: title, creation date, script generation status
+
+10. Create Topic Page (/dashboard/channels/[channel_name]/topics/new)
+Form fields: name, description
+
+On submit: create in topics table, show success toast, redirect to topic page
+
+11. Create Story Page (/dashboard/channels/[channel_name]/topics/[topic_name]/stories/new)
+Form fields: title, content (textarea for story)
+
+Image upload section:
+
+Option to upload multiple images
+
+Option to let system generate images (placeholder functionality)
+
+Preview uploaded images
+
+On submit:
+
+Save story to stories table
+
+Upload images to Supabase Storage bucket story-images
+
+Save image references to story_images table
+
+Show success toast
+
+Redirect to story detail page
+
+12. Story Detail Page (/dashboard/channels/[channel_name]/topics/[topic_name]/stories/[story_id])
+Display full story content
+
+Display associated images (grid layout)
+
+"Generate Scripts" button (prominent)
+
+When clicked:
+
+Mark story as script_generated: true (placeholder for now)
+
+Update generated_script with sample text
+
+Show success toast: "Script generated successfully!"
+
+Authentication Implementation
+Custom authentication system (NO Supabase Auth)
+
+Password hashing using bcrypt
+
+Session management with HTTP-only cookies
+
+Middleware for protected routes
+
+Password reset functionality (optional stretch goal)
+
+
+UI/UX Requirements
+Clean, modern design with Tailwind CSS
+
+Responsive for desktop and tablet
+
+Consistent use of react-icons for buttons and indicators
+
+react-hot-toast for ALL user feedback:
+
+Success messages (green)
+
+Error messages (red)
+
+Loading states (promise toasts)
+
+Loading states for all async operations
+
+Confirm dialogs for destructive actions
+
+
+API Routes (Next.js App Router)
+Server Actions for Data Operations:
+registerUser(first_name, last_name, email, password)
+
+loginUser(email, password)
+
+createChannel(userId, name, description)
+
+getUserChannels(userId)
+
+createTopic(channelId, name, description)
+
+getChannelTopics(channelId)
+
+createStory(topicId, title, content, images)
+
+generateScript(storyId)
+
+uploadImage(file, storyId, isAiGenerated)
+
+
+Security Requirements
+SQL injection prevention (Supabase parameterized queries)
+
+XSS protection
+
+Secure file upload validation
+
+Password hashing with salt
+
+HTTPS enforcement
+
+CORS configuration
+
+Implementation Notes
+Use Supabase JavaScript client for database operations
+
+Implement custom authentication middleware
+
+Store images in Supabase Storage with user-specific folders
+
+Use optimistic updates for better UX
+
+Implement proper error boundaries
+
+Add loading skeletons for better perceived performance
+
+Use Next.js Image component for optimized images
+
+
+
+
+Environment Variables
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+JWT_SECRET=

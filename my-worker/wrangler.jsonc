@@ -1,0 +1,14 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "my-worker",
+  "main": "src/index.js",
+  "compatibility_date": "2026-01-28",
+  "observability": {
+    "enabled": true
+  },
+
+  // 👇 Add this AI binding
+  "ai": {
+    "binding": "AI"
+  }
+}
