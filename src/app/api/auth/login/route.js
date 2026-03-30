@@ -21,6 +21,7 @@ export async function POST(request) {
       .single();
 
     if (!user) {
+      console.log("no user")
       return NextResponse.json(
         { error: 'Invalid credentials' },
         { status: 401 }
@@ -31,6 +32,7 @@ export async function POST(request) {
     const isPasswordValid = await comparePassword(password, user.password_hash);
 
     if (!isPasswordValid) {
+      console.log("Password error")
       return NextResponse.json(
         { error: 'Invalid credentials' },
         { status: 401 }
@@ -45,7 +47,7 @@ export async function POST(request) {
       { status: 200 }
     );
   } catch (error) {
-    console.error('Login error:', error);
+    console.log('Login error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
