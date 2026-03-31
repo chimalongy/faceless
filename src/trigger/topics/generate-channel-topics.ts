@@ -154,6 +154,17 @@ Use your creativity to produce viral, audience-engaging ideas while strictly fol
 
 
       for (const topic of parsed.topics) {
+
+         //calling generate background music task from here.
+
+         
+
+
+
+
+
+
+
         const image_theme = JSON.stringify(topic.image_generation_theme);
         const { error } = await supabase.from('topics').insert({
           user_id: userId,
