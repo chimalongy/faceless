@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { FaMagic } from 'react-icons/fa';
 
-export default function GenerateButton({ isGenerated, storyId }) {
+export default function GenerateScriptButton({ isGenerated, storyId }) {
   const [loading, setLoading] = useState(false);
 
   const handleGenerateScript = async () => {

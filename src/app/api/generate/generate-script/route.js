@@ -30,13 +30,13 @@ export async function POST(request) {
     }
 
     // Trigger the background task
-    const handle = await tasks.trigger("generate-script-frames", {
+    const handle = await tasks.trigger("generate-script", {
       storyId,
     });
 
     return NextResponse.json({
       success: true,
-      message: "Frame generation started",
+      message: "Script generation started for this story",
       runId: handle.id,
     });
   } catch (error) {

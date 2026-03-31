@@ -17,7 +17,7 @@ import {
 } from 'react-icons/fa';
 import { HiSparkles, HiPhoto } from 'react-icons/hi2';
 import { notFound } from 'next/navigation';
-import GenerateButton from "../../../../../../../../../components/stories/GenerateButton"
+import GenerateScriptButton from "../../../../../../../../../components/stories/GenerateScriptButton"
 
 import CopyButton from '../../../../../../../../../components/stories/CopyButton';
 import EditableGeneratedScript from '../../../../../../../../../components/stories/EditableGeneratedScript';
@@ -185,7 +185,7 @@ export default async function StoryDetailPage({ params }) {
                   </div>
                 </div>
 
-                <GenerateButton isGenerated={story.script_generated} storyId={story.id} />
+                <GenerateScriptButton isGenerated={story.script_generated} storyId={story.id} />
               </div>
             </div>
           </div>
@@ -283,7 +283,7 @@ export default async function StoryDetailPage({ params }) {
                         scene={scene}
                         audio={audio}
                         storyId={story.id}
-                        GenerateButton={
+                        GenerateScriptButton={
                           <GenerateSceneAudioButton
                             storyId={story.id}
                             sceneNumber={scene.sceneNumber}
@@ -298,78 +298,80 @@ export default async function StoryDetailPage({ params }) {
               </CollapsibleSection>
             )}
 
-            {/* Visual Assets */}
-            <CollapsibleSection
-              title="Visual Assets"
-              subtitle="Images for this story"
-              icon={
-                <div className="p-3 rounded-xl bg-gradient-to-r from-blue-100 to-indigo-100">
-                  <FaImage className="text-2xl text-blue-600" />
-                </div>
-              }
-              defaultOpen={false}
-              borderTopColor="from-blue-500 to-indigo-500"
-              cardClassName="relative overflow-hidden rounded-2xl bg-white border border-gray-200 shadow-sm"
-              headerActions={
-                <VisualAssetsControls storyId={story.id} />
-              }
-              maxHeight={MAX_SECTION_HEIGHT}
-            >
-              {images.length === 0 ? (
-                <div className="text-center py-8 border-2 border-dashed border-blue-200 rounded-xl bg-gradient-to-br from-blue-50/50 to-indigo-50/30">
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 mb-4">
-                    <HiPhoto className="text-3xl text-blue-500" />
+            {/* Visual Assets - only shown when script has been generated */}
+            {story.script_generated && (
+              <CollapsibleSection
+                title="Visual Assets"
+                subtitle="Images for this story"
+                icon={
+                  <div className="p-3 rounded-xl bg-gradient-to-r from-blue-100 to-indigo-100">
+                    <FaImage className="text-2xl text-blue-600" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No Images Yet</h3>
-                  <p className="text-gray-500 text-sm mb-6 max-w-xs mx-auto">
-                    Add images to enhance your story visualization
-                  </p>
-                  <button className="group inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-blue-500/25 transition-all">
-                    <FaImage className="group-hover:scale-110 transition-transform" />
-                    <span>Upload Images</span>
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  <div className="grid grid-cols-2 gap-4">
-                    {images.map((img, index) => (
-                      <div key={img.id} className="relative group">
-                        <div className="aspect-video rounded-xl overflow-hidden border-2 border-gray-200 group-hover:border-blue-300 transition-all duration-300 shadow-sm">
-                          <img
-                            src={img.image_url}
-                            alt={`Story visual ${index + 1}`}
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                          />
-                        </div>
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                          <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-                            <span className="text-xs text-white/90 font-medium bg-black/40 px-2 py-1 rounded-full">
-                              Image {index + 1}
-                            </span>
-                            <a
-                              href={img.image_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1.5 text-xs text-white bg-black/60 hover:bg-white hover:text-black px-3 py-1.5 rounded-full border border-white/30 transition-colors"
-                            >
-                              <FaExternalLinkAlt className="text-[10px]" />
-                              <span>Full View</span>
-                            </a>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="pt-4 border-t border-gray-100">
-                    <button className="group w-full inline-flex items-center justify-center gap-3 px-6 py-3.5 bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-blue-500/25 transition-all">
-                      <FaUpload className="group-hover:scale-110 transition-transform" />
-                      <span>Add More Images</span>
+                }
+                defaultOpen={false}
+                borderTopColor="from-blue-500 to-indigo-500"
+                cardClassName="relative overflow-hidden rounded-2xl bg-white border border-gray-200 shadow-sm"
+                headerActions={
+                  <VisualAssetsControls storyId={story.id} />
+                }
+                maxHeight={MAX_SECTION_HEIGHT}
+              >
+                {images.length === 0 ? (
+                  <div className="text-center py-8 border-2 border-dashed border-blue-200 rounded-xl bg-gradient-to-br from-blue-50/50 to-indigo-50/30">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 mb-4">
+                      <HiPhoto className="text-3xl text-blue-500" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No Images Yet</h3>
+                    <p className="text-gray-500 text-sm mb-6 max-w-xs mx-auto">
+                      Add images to enhance your story visualization
+                    </p>
+                    <button className="group inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-blue-500/25 transition-all">
+                      <FaImage className="group-hover:scale-110 transition-transform" />
+                      <span>Upload Images</span>
                     </button>
                   </div>
-                </div>
-              )}
-            </CollapsibleSection>
+                ) : (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-2 gap-4">
+                      {images.map((img, index) => (
+                        <div key={img.id} className="relative group">
+                          <div className="aspect-video rounded-xl overflow-hidden border-2 border-gray-200 group-hover:border-blue-300 transition-all duration-300 shadow-sm">
+                            <img
+                              src={img.image_url}
+                              alt={`Story visual ${index + 1}`}
+                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                            />
+                          </div>
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+                              <span className="text-xs text-white/90 font-medium bg-black/40 px-2 py-1 rounded-full">
+                                Image {index + 1}
+                              </span>
+                              <a
+                                href={img.image_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 text-xs text-white bg-black/60 hover:bg-white hover:text-black px-3 py-1.5 rounded-full border border-white/30 transition-colors"
+                              >
+                                <FaExternalLinkAlt className="text-[10px]" />
+                                <span>Full View</span>
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="pt-4 border-t border-gray-100">
+                      <button className="group w-full inline-flex items-center justify-center gap-3 px-6 py-3.5 bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-blue-500/25 transition-all">
+                        <FaUpload className="group-hover:scale-110 transition-transform" />
+                        <span>Add More Images</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </CollapsibleSection>
+            )}
 
             {/* Scene Videos */}
             {scriptScenes.length > 0 && (

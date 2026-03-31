@@ -133,18 +133,23 @@ ${topic.image_generation_theme}
         );
       }
 
-      // Save to DB
-      const { error: insertError } = await supabase
+      // Save to DB (upsert)
+      const { error: upsertError } = await supabase
         .from("story_images")
-        .insert({
-          story_id: story.id,
-          image_url: sceneImage.url,
-          scene_number: sceneNumber,
-          image_number: i,
-        });
+        .upsert(
+          {
+            story_id: story.id,
+            image_url: sceneImage.url,
+            scene_number: sceneNumber,
+            image_number: i,
+          },
+          {
+            onConflict: "story_id,scene_number,image_number", // columns that define uniqueness
+          }
+        );
 
-      if (insertError) {
-        throw insertError;
+      if (upsertError) {
+        throw upsertError;
       }
 
       await delay(2000);
