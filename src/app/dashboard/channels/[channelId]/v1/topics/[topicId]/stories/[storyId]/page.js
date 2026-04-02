@@ -30,7 +30,7 @@ import GenerateAllImagesButton from '../../../../../../../../../components/stori
 import VisualAssetsControls from '../../../../../../../../../components/stories/VisualAssetsControls';
 import GenerateAllSceneFramesButton from '../../../../../../../../../components/stories/GenerateAllSceneFramesButton';
 import GenerateSceneFrameVideoButton from '../../../../../../../../../components/stories/GenerateSceneFrameVideoButton';
-import MergeVideosButton from '../../../../../../../../../components/stories/MergeVideosButtonModal';
+import MergeVideosButton from '../../../../../../../../../components/stories/MergeVideosButton';
 import { getChannel } from '../../../../../../../../../lib/actions';
 
 const MAX_SECTION_HEIGHT = '600px';

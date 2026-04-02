@@ -102,9 +102,10 @@ Instructions:
    - The theme should be vivid and specific enough for AI image generation to follow consistently.
 8. Do NOT generate topics that are similar to or overlap with any of these existing topics: ${topicString}.
 9. Generate a background music prompt for each topic:
-   - The prompt should be enough for AI music generation to follow consistently and generate a calming, motivational, or inspiring (you have to decide which one based on the topic) instrumental music with no vocals befitting for stories generated from the topic.
+   - The prompt should be enough for AI music generation to follow consistently and generate an instrumental music with no vocals befitting for stories generated from the topic.
    - The length of the music must be 1 minute.
-   - The music should be loopable.( the beging of the music must be able to align seamlessly with the end of the music )
+   - The music should be loopable.( the begining of the music must be able to align seamlessly with the end of the music )
+   - The music must not be contain drum beat, piano and any other instruments that you think would be beffitting for the story. BUT NO VOCALS
 
 Use your creativity to produce viral, audience-engaging ideas while strictly following the JSON structure above.
 `

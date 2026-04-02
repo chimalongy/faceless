@@ -137,6 +137,13 @@ export const mixBackgroundMusicTask = task({
                 .select()
                 .single();
 
+
+
+
+
+
+
+
             if (updateError) throw updateError;
 
             logger.log("mix-background-music completed", { storyId, public_url, updatedStory });
