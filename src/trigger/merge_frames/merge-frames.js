@@ -5,6 +5,7 @@ import axios from "axios";
 import fs from "fs";
 import path from "path";
 import os from "os";
+import {mixBackgroundMusicTask} from "./mix-background-music.js"
 
 const bucketName = process.env.SUPABASE_BUCKET;
 
@@ -13,7 +14,7 @@ export const mergeFramesTask = task({
   maxDuration: 80000,
 
   run: async (payload, { ctx }) => {
-    const { storyId, sceneVideos, upload_destination, video_generation_url } = payload;
+    const { storyId, sceneVideos, upload_destination, videoGenUrl } = payload;
 
     logger.log("merge-frames started", { storyId, sceneVideos, ctx });
 
@@ -128,6 +129,13 @@ export const mergeFramesTask = task({
       logger.log("merge-frames completed", { storyId, public_url, updatedStory });
 
       //call the background music inserter task
+
+      await mixBackgroundMusicTask.triggerAndWait({
+        storyId,
+        videoUrl: public_url,
+        upload_destination,
+      
+      });
 
       return { success: true, storyId, videoUrl: public_url };
     } catch (err) {

@@ -30,7 +30,7 @@
     "**/*.mts",
     "**/*.ts",
     "**/*.tsx"
-, "src/app/api/generate/scene-frames/generate-story_videos/route.js", "src/trigger/imagetriggers/generateImagesTask.js", "src/trigger/imagetriggers/generateSceneImageTask .js"  ],
+, "src/app/api/generate/scene-frames/generate-story-videos/route.js", "src/trigger/imagetriggers/generateImagesTask.js", "src/trigger/imagetriggers/generateSceneImageTask .js"  ],
   "exclude": [
     "node_modules"
   ]

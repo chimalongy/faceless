@@ -22,8 +22,8 @@ export async function POST(request) {
         }
 
         const body = await request.json();
-        const { storyId } = body;
-
+        const { storyId, videoGenUrl } = body;
+         
         if (!storyId) {
             return NextResponse.json(
                 { error: "Story ID is required" },
@@ -80,6 +80,7 @@ export async function POST(request) {
             storyId,
             sceneVideos,
             upload_destination,
+            videoGenUrl:null
         });
 
         return NextResponse.json({

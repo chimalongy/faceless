@@ -22,7 +22,14 @@ export async function POST(request) {
     }
 
     const body = await request.json();
-    const { storyId, videoGenUrl } = body;
+    let { storyId, videoGenUrl } = body;
+
+    if (videoGenUrl.endsWith("/")){
+   videoGenUrl = videoGenUrl+"generate-video"
+    }
+    else{
+       videoGenUrl = videoGenUrl+"/generate-video"
+    }
 
     if (!storyId) {
       return NextResponse.json(

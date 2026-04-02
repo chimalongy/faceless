@@ -23,7 +23,7 @@ export default function GenerateAllSceneFramesButton({ storyId }) {
         const loadingToast = toast.loading('Generating scene frames...');
 
         try {
-            const res = await fetch('/api/generate/scene-frames/generate-story_videos', {
+            const res = await fetch('/api/generate/scene-frames/generate-story-videos', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

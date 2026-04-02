@@ -8,7 +8,7 @@ export const getScriptVideo = task({
 
   run: async (payload) => {
     try {
-      const {
+      let {
         storyId,
         safeTitle,
         scene,
@@ -21,9 +21,10 @@ export const getScriptVideo = task({
       } = payload;
 
       logger.info("Getting frame result", { scene: scene_number });
-
+      
       logger.info(payload)
-
+      
+       logger.info("Video Service Url: + video_service_url")
       const result = await getSlideConfiguration(payload);
 
       let { slides, audioUrl, assContent: subtitles, audioDuration } = result;
@@ -50,7 +51,9 @@ export const getScriptVideo = task({
       const scene_frame_upload_destination =
         `generated/video-frames/${safeTitle}/scenes/${scene_number}.mp4`;
 
-      logger.log("Sending scene to video renderer", { scene: scene_number });
+        
+       
+      logger.log("Sending scene to video renderer", { scene: scene_number, video_service_url:video_service_url });
 
       const videoServiceResponse = await axios.post(
         video_service_url,
