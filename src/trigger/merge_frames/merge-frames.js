@@ -1,25 +1,19 @@
 import { logger, task, usage } from "@trigger.dev/sdk/v3";
-import { supabase } from "../lib/supabase";
+import { supabase } from "../../lib/supabase.js";
 import ffmpeg from "fluent-ffmpeg";
 import axios from "axios";
 import fs from "fs";
 import path from "path";
 import os from "os";
 
-type MergeFramesPayload = {
-  storyId: string;
-  sceneVideos: { scene_number: number; video_url: string }[];
-  upload_destination: string;
-};
-
 const bucketName = process.env.SUPABASE_BUCKET;
 
 export const mergeFramesTask = task({
   id: "merge-frames",
-  maxDuration: 30000,
+  maxDuration: 80000,
 
-  run: async (payload: MergeFramesPayload, { ctx }) => {
-    const { storyId, sceneVideos, upload_destination } = payload;
+  run: async (payload, { ctx }) => {
+    const { storyId, sceneVideos, upload_destination, video_generation_url } = payload;
 
     logger.log("merge-frames started", { storyId, sceneVideos, ctx });
 
@@ -32,7 +26,7 @@ export const mergeFramesTask = task({
       );
 
       // Download all videos locally
-      const localFiles: string[] = [];
+      const localFiles = [];
 
       for (const scene of sortedScenes) {
         const filePath = path.join(tmpDir, `scene-${scene.scene_number}.mp4`);
@@ -59,7 +53,7 @@ export const mergeFramesTask = task({
       logger.log("Starting FFmpeg merge...");
 
       // Merge with heartbeat via progress events
-      await new Promise<void>((resolve, reject) => {
+      await new Promise((resolve, reject) => {
         let lastHeartbeat = Date.now();
 
         ffmpeg()
@@ -100,7 +94,7 @@ export const mergeFramesTask = task({
       const mergedBuffer = fs.readFileSync(outputPath);
 
       const { error: uploadError } = await supabase.storage
-        .from(bucketName!)
+        .from(bucketName)
         .upload(upload_destination, mergedBuffer, {
           contentType: "video/mp4",
           upsert: true,
@@ -110,7 +104,7 @@ export const mergeFramesTask = task({
 
       // Get the public URL
       const { data: publicUrlData } = supabase.storage
-        .from(bucketName!)
+        .from(bucketName)
         .getPublicUrl(upload_destination);
 
       const public_url = publicUrlData.publicUrl;
@@ -120,9 +114,10 @@ export const mergeFramesTask = task({
       const { data: updatedStory, error: updateError } = await supabase
         .from("stories")
         .update({
-          upload_path,
+          upload_path: upload_path,
           completion_status: true,
-          public_url,
+          completd_video_url: public_url,
+          public_url: public_url,
         })
         .eq("id", storyId)
         .select()
@@ -131,6 +126,8 @@ export const mergeFramesTask = task({
       if (updateError) throw updateError;
 
       logger.log("merge-frames completed", { storyId, public_url, updatedStory });
+
+      //call the background music inserter task
 
       return { success: true, storyId, videoUrl: public_url };
     } catch (err) {

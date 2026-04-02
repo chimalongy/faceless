@@ -1,5 +1,5 @@
 import { task, logger } from "@trigger.dev/sdk/v3";
-import { supabase } from "../lib/supabase";
+import { supabase } from "../../lib/supabase";
 import { generatePointScript } from "./generate-point-script";
 
 type GenerateScriptPayload = {
@@ -33,6 +33,7 @@ export const generateScriptTask = task({
         : story.content;
 
     const scripts: any[] = [];
+    
 
     // ---------- INTRODUCTION ----------
     const introductionResult =
@@ -81,12 +82,16 @@ export const generateScriptTask = task({
       logger.info(`✅ Point ${index} scenes added`);
     }
 
+    const totalImages = scripts.reduce((sum, scene) => sum + scene.numberOfImages, 0);
+
     // ---------- SAVE ----------
     const { error: saveError } = await supabase
       .from("stories")
       .update({
         script_generated: true,
         generated_script: JSON.stringify({scenes:scripts}),
+        total_images: totalImages,
+
       })
       .eq("id", storyId);
 

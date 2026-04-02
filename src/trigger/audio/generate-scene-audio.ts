@@ -1,7 +1,7 @@
 import { task, logger } from "@trigger.dev/sdk/v3";
-import { supabase } from "../lib/supabase";
+import { supabase } from "../../lib/supabase";
 import { Client } from "@gradio/client";
-import { downloadAndUploadToSupabase } from "../lib/tasks/audiodownloader";
+import { downloadAndUploadToSupabase } from "../../lib/tasks/audiodownloader";
 
 type GenerateSceneAudioPayload = {
   storyId: string;

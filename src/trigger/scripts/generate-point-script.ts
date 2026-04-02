@@ -1,6 +1,6 @@
 import { task, logger } from "@trigger.dev/sdk/v3";
 import OpenAI from "openai";
-import { supabase } from "../lib/supabase";
+import { supabase } from "../../lib/supabase";
 
 type GeneratePointScriptPayload = {
   storyId: string;
