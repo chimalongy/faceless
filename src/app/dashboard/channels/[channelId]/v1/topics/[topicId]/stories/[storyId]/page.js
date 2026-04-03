@@ -14,9 +14,12 @@ import {
   FaMusic,
   FaPlay,
   FaVideo,
+  FaCamera,
+  FaTrashAlt,
 } from 'react-icons/fa';
 import { HiSparkles, HiPhoto } from 'react-icons/hi2';
 import { notFound } from 'next/navigation';
+import StoryThumbnailUpload from './StoryThumbnailUpload';
 import GenerateScriptButton from "../../../../../../../../../components/stories/GenerateScriptButton"
 
 import CopyButton from '../../../../../../../../../components/stories/CopyButton';
@@ -195,6 +198,43 @@ export default async function StoryDetailPage({ params }) {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Column */}
           <div className="lg:col-span-2 space-y-8">
+
+            {/* Story Thumbnail Section */}
+            <CollapsibleSection
+              title="Story Thumbnail"
+              subtitle="Main image representing your story"
+              icon={
+                <div className="p-3 rounded-xl bg-gradient-to-r from-cyan-100 to-blue-100 border border-cyan-200">
+                  <FaCamera className="text-2xl text-cyan-600" />
+                </div>
+              }
+              defaultOpen={true}
+              borderTopColor="from-cyan-500 to-blue-500"
+              cardClassName="relative overflow-hidden rounded-2xl bg-white border border-gray-200 shadow-sm"
+              maxHeight={MAX_SECTION_HEIGHT}
+            >
+              <StoryThumbnailUpload 
+                channelId={channelId}
+                topicId={topicId}
+                storyId={storyId}
+                initialThumbnailUrl={story.thumbnail_url}
+                storyTitle={story.title}
+              />
+
+              {/* Thumbnail Tips moved outside the control since it's common */}
+              <div className="bg-gradient-to-r from-cyan-50 to-blue-50 rounded-xl p-4 border border-cyan-200 mt-4">
+                  <h4 className="text-sm font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                    <HiSparkles className="text-cyan-500" />
+                    Thumbnail Tips
+                  </h4>
+                  <ul className="text-xs text-gray-600 space-y-1">
+                    <li>• Use high-quality images (1280x720px recommended)</li>
+                    <li>• Add text overlays for better context</li>
+                    <li>• Use bright, contrasting colors to grab attention</li>
+                    <li>• Ensure the main subject is clearly visible</li>
+                  </ul>
+                </div>
+            </CollapsibleSection>
 
             {/* Story Content */}
             <CollapsibleSection
@@ -516,6 +556,12 @@ export default async function StoryDetailPage({ params }) {
                 <div className="flex items-center justify-between">
                   <span className="text-gray-300">Word Count</span>
                   <span className="font-semibold">{wordCount} words</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-300">Thumbnail</span>
+                  <span className={`font-semibold ${story.thumbnail_url ? 'text-emerald-300' : 'text-amber-300'}`}>
+                    {story.thumbnail_url ? 'Uploaded' : 'Not Set'}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-gray-300">Script Status</span>

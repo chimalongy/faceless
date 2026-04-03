@@ -39,6 +39,7 @@ create table topics (
   background_music_duration integer default null,
   background_music_url text default null,
   image_generation_theme text default null,
+  story_thumbnail_prompt text default null,
   created_at timestamp with time zone default timezone('utc'::text, now()),
   updated_at timestamp with time zone default timezone('utc'::text, now())
 );
@@ -59,6 +60,7 @@ create table public.stories (
   audio_generated boolean null default false,
   completion_status boolean null default false,
   completd_video_url text null,
+  thumbnail_url text null,
   upload_path text null,
   constraint stories_pkey primary key (id),
   constraint stories_channel_id_fkey foreign KEY (channel_id) references channels (id) on delete CASCADE,

@@ -15,6 +15,7 @@ type Topic = {
   background_music_prompt?: string;
   background_music_duration?: number;
   image_generation_theme: string;
+  story_thumbnail_prompt: string
 };
 
 type TopicsResponse = {
@@ -77,7 +78,7 @@ Instructions:
       "description": "string",
       "background_music_prompt": "string",
       "background_music_duration": "number",
-      "story_
+      "story_thumbnail_prompt": "string",
       "image_generation_theme": {
         "art_style": "string",
         "lighting": "string",
@@ -107,6 +108,10 @@ Instructions:
    - The length of the music must be 1 minute.
    - The music should be loopable.( the begining of the music must be able to align seamlessly with the end of the music )
    - The music must not be contain drum beat, piano and any other instruments that you think would be beffitting for the story. BUT NO VOCALS
+10. Generate a story thumbnail prompt for each topic:
+   - The prompt should be enough for AI image generation to follow consistently and generate similar thumbnails for all the stories within the topic.
+   - The thumbnail should be visually appealing and attention-grabbing.
+   - The thumbnail should be visually consistent with the image_generation_theme.
 
 Use your creativity to produce viral, audience-engaging ideas while strictly following the JSON structure above.
 `
@@ -157,9 +162,9 @@ Use your creativity to produce viral, audience-engaging ideas while strictly fol
 
       for (const topic of parsed.topics) {
 
-         //calling generate background music task from here.
+        //calling generate background music task from here.
 
-         
+
 
 
 
@@ -176,6 +181,7 @@ Use your creativity to produce viral, audience-engaging ideas while strictly fol
           background_music_prompt: topic.background_music_prompt ?? null,
           background_music_duration: topic.background_music_duration ?? null,
           image_generation_theme: image_theme,
+          story_thumbnail_prompt: topic.story_thumbnail_prompt ?? null,
         });
         if (error) {
           logger.error("Failed to insert topic", { error, topic });

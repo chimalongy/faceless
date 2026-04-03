@@ -125,8 +125,8 @@ export async function updateChannelMedia(formData) {
     const publicUrl = `${process.env.R2_PUBLIC_URL}/${fileName}`;
 
     // Update Supabase
-    const updateData = type === 'picture' 
-      ? { channel_picture_url: publicUrl } 
+    const updateData = type === 'picture'
+      ? { channel_picture_url: publicUrl }
       : { channel_banner_url: publicUrl };
 
     const { error } = await supabase
@@ -142,6 +142,80 @@ export async function updateChannelMedia(formData) {
   } catch (error) {
     console.error('Update channel media error:', error);
     throw new Error('Failed to update channel media');
+  }
+}
+
+export async function updateStoryThumbnail(formData) {
+  const userId = await getSessionCookie();
+  if (!userId) throw new Error('Unauthorized');
+
+  const channelId = formData.get('channelId');
+  const topicId = formData.get('topicId');
+  const storyId = formData.get('storyId');
+  const file = formData.get('file');
+
+  if (!storyId || !file) {
+    throw new Error('Missing required fields');
+  }
+
+  const fileExt = file.name.split('.').pop();
+  const fileName = `channels/${channelId}/topics/${topicId}/stories/${storyId}/thumbnail_${Date.now()}.${fileExt}`;
+
+  // Upload to R2
+  const arrayBuffer = await file.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+
+  try {
+    await r2.send(new PutObjectCommand({
+      Bucket: process.env.R2_BUCKET,
+      Key: fileName,
+      Body: buffer,
+      ContentType: file.type,
+    }));
+
+    const publicUrl = `${process.env.R2_PUBLIC_URL}/${fileName}`;
+
+    // Update Supabase
+    const { error } = await supabase
+      .from('stories')
+      .update({ thumbnail_url: publicUrl })
+      .eq('id', storyId)
+      .eq('user_id', userId);
+
+    if (error) throw error;
+
+    revalidatePath(`/dashboard/channels/${channelId}/v1/topics/${topicId}/stories/${storyId}`);
+    return { success: true, url: publicUrl };
+  } catch (error) {
+    console.error('Update story thumbnail error:', error);
+    throw new Error('Failed to update story thumbnail');
+  }
+}
+
+export async function deleteStoryThumbnail(formData) {
+  const userId = await getSessionCookie();
+  if (!userId) throw new Error('Unauthorized');
+
+  const channelId = formData.get('channelId');
+  const topicId = formData.get('topicId');
+  const storyId = formData.get('storyId');
+
+  if (!storyId) throw new Error('Story ID is required');
+
+  try {
+    const { error } = await supabase
+      .from('stories')
+      .update({ thumbnail_url: null })
+      .eq('id', storyId)
+      .eq('user_id', userId);
+
+    if (error) throw error;
+
+    revalidatePath(`/dashboard/channels/${channelId}/v1/topics/${topicId}/stories/${storyId}`);
+    return { success: true };
+  } catch (error) {
+    console.error('Delete story thumbnail error:', error);
+    throw new Error('Failed to delete story thumbnail');
   }
 }
 
