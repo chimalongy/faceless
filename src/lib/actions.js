@@ -5,6 +5,8 @@ import { getSessionCookie } from '../lib/auth';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { videoScript } from '../../samplefiles/sample_script';
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { r2 } from './r2';
 
 // --- Channels ---
 
@@ -91,6 +93,56 @@ export async function deleteChannel(formData) {
 
   revalidatePath('/dashboard/channels');
   redirect('/dashboard/channels');
+}
+
+export async function updateChannelMedia(formData) {
+  const userId = await getSessionCookie();
+  if (!userId) throw new Error('Unauthorized');
+
+  const channelId = formData.get('channelId');
+  const type = formData.get('type'); // 'picture' or 'banner'
+  const file = formData.get('file');
+
+  if (!channelId || !type || !file) {
+    throw new Error('Missing required fields');
+  }
+
+  const fileExt = file.name.split('.').pop();
+  const fileName = `channels/${channelId}/${type}_${Date.now()}.${fileExt}`;
+
+  // Upload to R2
+  const arrayBuffer = await file.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+
+  try {
+    await r2.send(new PutObjectCommand({
+      Bucket: process.env.R2_BUCKET,
+      Key: fileName,
+      Body: buffer,
+      ContentType: file.type,
+    }));
+
+    const publicUrl = `${process.env.R2_PUBLIC_URL}/${fileName}`;
+
+    // Update Supabase
+    const updateData = type === 'picture' 
+      ? { channel_picture_url: publicUrl } 
+      : { channel_banner_url: publicUrl };
+
+    const { error } = await supabase
+      .from('channels')
+      .update(updateData)
+      .eq('id', channelId)
+      .eq('user_id', userId);
+
+    if (error) throw error;
+
+    revalidatePath(`/dashboard/channels/${channelId}/v1`);
+    return { success: true, url: publicUrl };
+  } catch (error) {
+    console.error('Update channel media error:', error);
+    throw new Error('Failed to update channel media');
+  }
 }
 
 // --- Topics ---

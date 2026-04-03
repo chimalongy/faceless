@@ -77,6 +77,7 @@ Instructions:
       "description": "string",
       "background_music_prompt": "string",
       "background_music_duration": "number",
+      "story_
       "image_generation_theme": {
         "art_style": "string",
         "lighting": "string",
