@@ -11,7 +11,7 @@ export default function GenerateMusicButton({ topicId }) {
         setLoading(true);
         const t = toast.loading('Queuing music generation…');
         try {
-            const res = await fetch('/api/generate/audio/generate-music', {
+            const res = await fetch('/api/generate/topic-background-music', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ topicId }),
