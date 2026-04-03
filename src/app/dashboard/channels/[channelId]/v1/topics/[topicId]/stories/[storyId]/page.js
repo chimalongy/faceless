@@ -21,6 +21,7 @@ import { HiSparkles, HiPhoto } from 'react-icons/hi2';
 import { notFound } from 'next/navigation';
 import StoryThumbnailUpload from './StoryThumbnailUpload';
 import GenerateScriptButton from "../../../../../../../../../components/stories/GenerateScriptButton"
+import UploadToYoutubeButton from './UploadToYoutubeButton';
 
 import CopyButton from '../../../../../../../../../components/stories/CopyButton';
 import EditableGeneratedScript from '../../../../../../../../../components/stories/EditableGeneratedScript';
@@ -541,6 +542,7 @@ export default async function StoryDetailPage({ params }) {
                       <FaVideo />
                       Download Final Video
                     </a>
+                    <UploadToYoutubeButton storyId={storyId} />
                   </div>
                 </div>
               </CollapsibleSection>
