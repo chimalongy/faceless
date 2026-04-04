@@ -1,6 +1,6 @@
 import { task, logger } from "@trigger.dev/sdk/v3";
 import { supabase } from "../../lib/supabase";
-import { generateSceneImageTask } from "./generateSceneImageTask .js";
+import { generateSceneImageTask } from "./generateSceneImageTask.js/index.js";
 
 export const generateImagesTask = task({
   id: "generate-images",
