@@ -767,3 +767,169 @@ export async function deleteBackgroundMusic(formData) {
 
   revalidatePath(`/dashboard/channels/${topic.channel_id}/v1/topics/${topicId}/background-music`);
 }
+
+// --- Background Music (Story Level) ---
+
+export async function getStoryBackgroundMusic(storyId) {
+  const userId = await getSessionCookie();
+  if (!userId) return [];
+
+  // Verify story belongs to user
+  const { data: story } = await supabase
+    .from('stories')
+    .select('id')
+    .eq('id', storyId)
+    .eq('user_id', userId)
+    .single();
+
+  if (!story) return [];
+
+  const { data, error } = await supabase
+    .from('story_background_music')
+    .select('*')
+    .eq('story_id', storyId)
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    console.error('Get story background music error:', error);
+    return [];
+  }
+
+  return data || [];
+}
+
+export async function uploadStoryBackgroundMusic(formData) {
+  const userId = await getSessionCookie();
+  if (!userId) throw new Error('Unauthorized');
+
+  const storyId = formData.get('storyId');
+  const musicFile = formData.get('music');
+  const volumeLevel = formData.get('volumeLevel') || '0.5';
+  const sceneNumber = formData.get('sceneNumber');
+  const isLooping = formData.get('isLooping') === 'true';
+
+  if (!storyId || !musicFile) {
+    throw new Error('Story ID and music file are required');
+  }
+
+  // Verify story belongs to user and get topic/channel info
+  const { data: story } = await supabase
+    .from('stories')
+    .select('id, topic_id, channel_id')
+    .eq('id', storyId)
+    .eq('user_id', userId)
+    .single();
+
+  if (!story) {
+    throw new Error('Story not found');
+  }
+
+  // Upload music file to Supabase Storage
+  const fileExt = musicFile.name.split('.').pop();
+  const fileName = `background-music/stories/${storyId}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+  const arrayBuffer = await musicFile.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+
+  const { error: uploadError } = await supabase.storage
+    .from(process.env.SUPABASE_BUCKET)
+    .upload(fileName, buffer, {
+      contentType: musicFile.type || 'audio/mpeg',
+      upsert: false,
+    });
+
+  if (uploadError) {
+    console.error('Music upload error:', uploadError);
+    throw new Error('Failed to upload music file');
+  }
+
+  // Get public URL
+  const { data: { publicUrl } } = supabase.storage
+    .from(process.env.SUPABASE_BUCKET)
+    .getPublicUrl(fileName);
+
+  // Save record to database
+  const { error: dbError } = await supabase
+    .from('story_background_music')
+    .insert({
+      user_id: userId,
+      story_id: storyId,
+      music_url: publicUrl,
+      music_format: fileExt,
+      volume_level: parseFloat(volumeLevel),
+      scene_number: sceneNumber ? parseInt(sceneNumber) : null,
+      is_looping: isLooping,
+    });
+
+  if (dbError) {
+    console.error('Database insert error:', dbError);
+    throw new Error('Failed to save music record');
+  }
+
+  revalidatePath(`/dashboard/channels/${story.channel_id}/v1/topics/${story.topic_id}/stories/${storyId}/background-music`);
+  redirect(`/dashboard/channels/${story.channel_id}/v1/topics/${story.topic_id}/stories/${storyId}/background-music`);
+}
+
+export async function deleteStoryBackgroundMusic(formData) {
+  const userId = await getSessionCookie();
+  if (!userId) throw new Error('Unauthorized');
+
+  const musicId = formData.get('musicId');
+  const storyId = formData.get('storyId');
+
+  if (!musicId || !storyId) {
+    throw new Error('Music ID and Story ID are required');
+  }
+
+  // Verify story belongs to user
+  const { data: story } = await supabase
+    .from('stories')
+    .select('id, topic_id, channel_id')
+    .eq('id', storyId)
+    .eq('user_id', userId)
+    .single();
+
+  if (!story) {
+    throw new Error('Story not found');
+  }
+
+  // Get music record to get storage path
+  const { data: music } = await supabase
+    .from('story_background_music')
+    .select('music_url')
+    .eq('id', musicId)
+    .eq('story_id', storyId)
+    .single();
+
+  if (music && music.music_url) {
+    // Extract path from URL and delete from storage
+    try {
+      const urlParts = music.music_url.split('/storage/v1/object/public/');
+      if (urlParts.length > 1) {
+        const pathParts = urlParts[1].split('/');
+        const bucketName = pathParts[0];
+        const filePath = pathParts.slice(1).join('/');
+
+        await supabase.storage
+          .from(bucketName)
+          .remove([filePath]);
+      }
+    } catch (err) {
+      console.error('Storage delete error:', err);
+    }
+  }
+
+  // Delete from database
+  const { error } = await supabase
+    .from('story_background_music')
+    .delete()
+    .eq('id', musicId)
+    .eq('story_id', storyId);
+
+  if (error) {
+    console.error('Delete background music error:', error);
+    throw new Error('Failed to delete background music');
+  }
+
+  revalidatePath(`/dashboard/channels/${story.channel_id}/v1/topics/${story.topic_id}/stories/${storyId}/background-music`);
+}

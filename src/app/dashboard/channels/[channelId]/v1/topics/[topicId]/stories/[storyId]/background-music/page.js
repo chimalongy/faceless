@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { FaArrowLeft, FaMusic, FaTrash, FaPlay, FaPause, FaUpload } from 'react-icons/fa';
 import { getSessionCookie } from '../../../../../../../../../../lib/auth';
 import { supabase } from '../../../../../../../../../../lib/supabase';
-import { getStoryBackgroundMusic, uploadBackgroundMusic, deleteBackgroundMusic } from '../../../../../../../../../../lib/actions';
+import { getStoryBackgroundMusic, uploadStoryBackgroundMusic, deleteStoryBackgroundMusic } from '../../../../../../../../../../lib/actions';
 import BackgroundMusicUploadForm from '../../../../../../../../../../components/stories/BackgroundMusicUploadForm';
 
 export default async function BackgroundMusicPage({ params }) {
@@ -47,15 +47,15 @@ export default async function BackgroundMusicPage({ params }) {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <Link
-        href={`/dashboard/channels/${channelId}/v1/topics/${topicId}/stories/${storyId}/edit`}
+        href={`/dashboard/channels/${channelId}/v1/topics/${topicId}/stories/${storyId}`}
         className="text-gray-500 hover:text-gray-900 flex items-center gap-2 mb-6"
       >
-        <FaArrowLeft /> Back to Edit Story
+        <FaArrowLeft /> Back to Story
       </Link>
 
       <div>
         <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">
-          Background Music
+          Story Background Music
         </h1>
         <p className="text-gray-500 mt-1">
           Upload and manage background music for "{story.title}"
@@ -83,7 +83,7 @@ export default async function BackgroundMusicPage({ params }) {
             <FaMusic className="text-purple-600 text-xl" />
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">Uploaded Music</h2>
+            <h2 className="text-xl font-semibold text-gray-900">Story Music Tracks</h2>
             <p className="text-sm text-gray-500">
               {backgroundMusic.length === 0
                 ? 'No background music uploaded yet'
@@ -155,7 +155,7 @@ export default async function BackgroundMusicPage({ params }) {
                     </div>
                   </div>
 
-                  <form action={deleteBackgroundMusic} className="flex-shrink-0">
+                  <form action={deleteStoryBackgroundMusic} className="flex-shrink-0">
                     <input type="hidden" name="musicId" value={music.id} />
                     <input type="hidden" name="storyId" value={storyId} />
                     <button

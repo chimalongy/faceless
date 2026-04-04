@@ -28,9 +28,11 @@ function SubmitButton({ disabled }) {
   );
 }
 
-export default function BackgroundMusicUploadForm({ topicId }) {
+export default function BackgroundMusicUploadForm({ topicId, storyId, scriptScenes = [] }) {
   const [selectedFile, setSelectedFile] = useState(null);
   const [volumeLevel, setVolumeLevel] = useState(0.5);
+  const [sceneNumber, setSceneNumber] = useState('');
+  const [isLooping, setIsLooping] = useState(true);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -62,17 +64,30 @@ export default function BackgroundMusicUploadForm({ topicId }) {
     }
 
     const formData = new FormData();
-    formData.append('topicId', topicId);
+    if (topicId) formData.append('topicId', topicId);
+    if (storyId) formData.append('storyId', storyId);
     formData.append('music', selectedFile);
     formData.append('volumeLevel', volumeLevel.toString());
+    if (storyId && sceneNumber) {
+      formData.append('sceneNumber', sceneNumber);
+      formData.append('isLooping', isLooping.toString());
+    }
 
     try {
-      const { uploadBackgroundMusic } = await import('../../lib/actions');
-      await uploadBackgroundMusic(formData);
+      if (storyId) {
+        const { uploadStoryBackgroundMusic } = await import('../../lib/actions');
+        await uploadStoryBackgroundMusic(formData);
+      } else {
+        const { uploadBackgroundMusic } = await import('../../lib/actions');
+        await uploadBackgroundMusic(formData);
+      }
+      
       toast.success('Background music uploaded successfully!');
       // Reset form
       setSelectedFile(null);
       setVolumeLevel(0.5);
+      setSceneNumber('');
+      setIsLooping(true);
       // Reset file input
       const fileInput = document.getElementById('music-file');
       if (fileInput) fileInput.value = '';
@@ -125,6 +140,55 @@ export default function BackgroundMusicUploadForm({ topicId }) {
           </label>
         </div>
       </div>
+
+      {storyId && scriptScenes.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Scene Assignment */}
+          <div className="space-y-2">
+            <label htmlFor="sceneNumber" className="text-sm font-medium text-gray-700">
+              Assign to Scene (Optional)
+            </label>
+            <select
+              id="sceneNumber"
+              value={sceneNumber}
+              onChange={(e) => setSceneNumber(e.target.value)}
+              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none"
+            >
+              <option value="">Entire Story</option>
+              {scriptScenes.map((scene) => (
+                <option key={scene.sceneNumber} value={scene.sceneNumber}>
+                  Scene {scene.sceneNumber}: {scene.title || 'Untitled Scene'}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Looping Option */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700">Looping</label>
+            <div className="flex items-center gap-4 py-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  checked={isLooping}
+                  onChange={() => setIsLooping(true)}
+                  className="w-4 h-4 text-purple-600 focus:ring-purple-500"
+                />
+                <span className="text-sm text-gray-600">Yes</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  checked={!isLooping}
+                  onChange={() => setIsLooping(false)}
+                  className="w-4 h-4 text-purple-600 focus:ring-purple-500"
+                />
+                <span className="text-sm text-gray-600">No</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Volume Level */}
       <div className="space-y-2">
