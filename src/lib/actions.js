@@ -145,6 +145,32 @@ export async function updateChannelMedia(formData) {
   }
 }
 
+export async function updateChannelConfigurations(channelId, config) {
+  const userId = await getSessionCookie();
+  if (!userId) throw new Error('Unauthorized');
+
+  if (!channelId || !config) {
+    throw new Error('Missing required fields');
+  }
+
+  try {
+    const { error } = await supabase
+      .from('channels')
+      .update({ configurations: JSON.stringify(config) })
+      .eq('id', channelId)
+      .eq('user_id', userId);
+
+    if (error) throw error;
+
+    revalidatePath(`/dashboard/channels/${channelId}/v1/configure`);
+    revalidatePath(`/dashboard/channels/${channelId}/v1`);
+    return { success: true };
+  } catch (error) {
+    console.error('Update channel configurations error:', error);
+    throw new Error('Failed to update channel configurations');
+  }
+}
+
 export async function updateStoryThumbnail(formData) {
   const userId = await getSessionCookie();
   if (!userId) throw new Error('Unauthorized');

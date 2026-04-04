@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { getChannel } from '../../../../../lib/actions';
 import { supabase } from '../../../../../lib/supabase';
-import { FaArrowLeft, FaPlus, FaLayerGroup, FaFileAlt, FaCalendarAlt, FaCamera, FaImage, FaEllipsisH, FaChartLine, FaUsers, FaVideo } from 'react-icons/fa';
+import { FaArrowLeft, FaPlus, FaLayerGroup, FaFileAlt, FaCalendarAlt, FaCamera, FaImage, FaEllipsisH, FaChartLine, FaUsers, FaVideo, FaCog } from 'react-icons/fa';
 import { notFound } from 'next/navigation';
 import GenerateTopicsButton from './GenerateTopicsButton';
 import DeleteTopicButton from './DeleteTopicButton';
@@ -142,6 +142,13 @@ export default async function ChannelDetailsPage({ params }) {
           >
             <FaPlus className="text-xs" />
             <span>Create Topic</span>
+          </Link>
+          <Link
+            href={`/dashboard/channels/${id}/v1/configure`}
+            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 bg-white border border-orange-200 text-orange-600 px-6 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md hover:bg-orange-50 transition-all duration-200 active:scale-95 group"
+          >
+            <FaCog className="text-xs group-hover:rotate-90 transition-transform duration-500" />
+            <span>Configure</span>
           </Link>
         </div>
       </div>

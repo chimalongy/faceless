@@ -24,6 +24,7 @@ create table channels (
   voiceText text,
   channel_picture_url text,
   channel_banner_url text,
+  configurations text,
   created_at timestamp with time zone default timezone('utc'::text, now()),
   updated_at timestamp with time zone default timezone('utc'::text, now())
 );
