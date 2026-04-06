@@ -21,7 +21,7 @@ export default function CollapsibleSection({
     <div className={cardClassName}>
       <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${borderTopColor}`} />
       
-      <div className="p-2">
+      <div className="p-2 md:p-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             {icon}
