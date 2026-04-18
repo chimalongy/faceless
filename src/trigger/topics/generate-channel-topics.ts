@@ -96,7 +96,7 @@ Instructions:
 4. Each topic should be broad enough to inspire multiple video stories.
    - Each story can have sub-sections (e.g., "10 Brutal Stoic Rules That Will Rebuild Your Mind, Body & Heart").
    - The topic itself should serve as a foundation for many such stories.
-5. The topic name must be compelling, concise, and attention-grabbing.
+5. The topic name must be compelling, concise, and attention-grabbing. MUST not include :
 6. The description must be detailed, story-driven, and explain why this topic is interesting for a channel audience.
 7. Generate a structured image_generation_theme for each topic:
    - Ensure visual consistency across all stories for this topic.

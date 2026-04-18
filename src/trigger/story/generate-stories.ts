@@ -100,7 +100,7 @@ Return ONLY valid JSON in this exact structure:
 
 Rules:
 
-1. Title must be unique, catchy, and intriguing.
+1. Title must be unique, catchy, and intriguing short and MUST NOT include :.
 2. Do NOT reuse any of these titles: ${alreadyCreatedTitlesString}
 3. Story content must:
    - Begin with a clear "introduction".

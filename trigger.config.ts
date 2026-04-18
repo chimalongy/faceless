@@ -1,6 +1,10 @@
 import { defineConfig } from "@trigger.dev/sdk/v3";
+import { additionalPackages } from "@trigger.dev/build/extensions/core";
 
 export default defineConfig({
+  build: {
+    extensions: [additionalPackages({ packages: ["sharp"] })],
+  },
   project: "proj_nekztniiwrxkoprigyww",
   runtime: "node",
   logLevel: "log",
