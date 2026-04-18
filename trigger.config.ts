@@ -1,10 +1,12 @@
 import { defineConfig } from "@trigger.dev/sdk/v3";
-import { additionalPackages } from "@trigger.dev/build/extensions/core";
+import { additionalPackages, additionalFiles } from "@trigger.dev/build/extensions/core";
 
 export default defineConfig({
   build: {
-    extensions: [additionalPackages({ packages: ["sharp"] })],
-    additionalFiles: ["./src/trigger/story/fonts/**"],
+    extensions: [
+      additionalPackages({ packages: ["sharp"] }),
+      additionalFiles({ files: ["./src/trigger/story/fonts/**"] })
+    ],
   },
   project: "proj_nekztniiwrxkoprigyww",
   runtime: "node",
