@@ -4,6 +4,7 @@ import { additionalPackages } from "@trigger.dev/build/extensions/core";
 export default defineConfig({
   build: {
     extensions: [additionalPackages({ packages: ["sharp"] })],
+    additionalFiles: ["./src/trigger/story/fonts/**"],
   },
   project: "proj_nekztniiwrxkoprigyww",
   runtime: "node",

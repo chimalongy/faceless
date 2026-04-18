@@ -6,6 +6,9 @@ import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { supabase } from "../../lib/supabase";
 import { r2 } from "../../lib/r2";
 import { getImageGenerationUrls } from "../../lib/apis/image-gen-apis.js";
+import * as fs from "fs";
+import * as path from "path";
+import { fileURLToPath } from "url";
 
 export const generateStoryThumbnailTask = task({
   id: "generate-story-thumbnail",
@@ -174,6 +177,14 @@ bad anatomy, inconsistent lighting, different styles
     const IMG_W = 1280;
     const IMG_H = 720;
 
+    // --- Embed bundled font so the SVG renders correctly on cloud Linux runners
+    // (Arial Black does not exist there — this eliminates the system-font dependency)
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    const fontPath = path.resolve(__dirname, "fonts/Inter-Bold.ttf");
+    const fontBase64 = fs.readFileSync(fontPath).toString("base64");
+    const fontDataUri = `data:font/truetype;base64,${fontBase64}`;
+
     // Word-wrap helper: split title into lines that fit within maxWidth chars per line
     const wrapText = (text: string, maxCharsPerLine: number): string[] => {
       const words = text.split(" ");
@@ -225,6 +236,13 @@ bad anatomy, inconsistent lighting, different styles
     const svgOverlay = `
       <svg width="${IMG_W}" height="${IMG_H}" xmlns="http://www.w3.org/2000/svg">
         <defs>
+          <style>
+            @font-face {
+              font-family: 'InterBold';
+              font-weight: 700;
+              src: url('${fontDataUri}') format('truetype');
+            }
+          </style>
           <linearGradient id="leftFade" x1="0" y1="0" x2="1" y2="0">
             <stop offset="0%"   stop-color="#000000" stop-opacity="0.72" />
             <stop offset="70%"  stop-color="#000000" stop-opacity="0.35" />
@@ -248,9 +266,9 @@ bad anatomy, inconsistent lighting, different styles
         <text
           x="${leftPadding}"
           y="${startY}"
-          font-family="Arial Black, Arial, sans-serif"
+          font-family="InterBold, sans-serif"
           font-size="${fontSize}"
-          font-weight="900"
+          font-weight="700"
           fill="#FFFFFF"
           letter-spacing="2"
           paint-order="stroke"
