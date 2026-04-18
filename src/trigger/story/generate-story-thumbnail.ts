@@ -179,9 +179,8 @@ bad anatomy, inconsistent lighting, different styles
 
     // --- Embed bundled font so the SVG renders correctly on cloud Linux runners
     // (Arial Black does not exist there — this eliminates the system-font dependency)
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = path.dirname(__filename);
-    const fontPath = path.resolve(__dirname, "fonts/Inter-Bold.ttf");
+    // Trigger.dev preserves the directory structure in the root of the worker, so we use process.cwd()
+    const fontPath = path.join(process.cwd(), "src/trigger/story/fonts/Inter-Bold.ttf");
     const fontBase64 = fs.readFileSync(fontPath).toString("base64");
     const fontDataUri = `data:font/truetype;base64,${fontBase64}`;
 
