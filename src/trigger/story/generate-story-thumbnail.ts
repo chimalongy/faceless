@@ -9,6 +9,7 @@ import { getImageGenerationUrls } from "../../lib/apis/image-gen-apis.js";
 import * as fs from "fs";
 import * as path from "path";
 import { fileURLToPath } from "url";
+import TextToSVG from "text-to-svg";
 
 export const generateStoryThumbnailTask = task({
   id: "generate-story-thumbnail",
@@ -177,12 +178,10 @@ bad anatomy, inconsistent lighting, different styles
     const IMG_W = 1280;
     const IMG_H = 720;
 
-    // --- Embed bundled font so the SVG renders correctly on cloud Linux runners
-    // (Arial Black does not exist there — this eliminates the system-font dependency)
+    // --- Convert Text to SVG Paths directly (bulletproof across all OS/Cloud environments)
     // Trigger.dev preserves the directory structure in the root of the worker, so we use process.cwd()
     const fontPath = path.join(process.cwd(), "src/trigger/story/fonts/Inter-Bold.ttf");
-    const fontBase64 = fs.readFileSync(fontPath).toString("base64");
-    const fontDataUri = `data:font/truetype;base64,${fontBase64}`;
+    const textToSVG = TextToSVG.loadSync(fontPath);
 
     // Word-wrap helper: split title into lines that fit within maxWidth chars per line
     const wrapText = (text: string, maxCharsPerLine: number): string[] => {
@@ -221,13 +220,19 @@ bad anatomy, inconsistent lighting, different styles
     const pillX = leftPadding - pillPadX;
     const pillY = startY - fontSize - pillPadY;
 
-    const tspans = lines
+    // Convert lines to SVG path geometries using TextToSVG
+    const textPaths = lines
       .map(
         (line, i) =>
-          `<tspan x="${leftPadding}" dy="${i === 0 ? 0 : lineHeight}">${line
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")}</tspan>`
+          textToSVG.getPath(
+            line.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"),
+            {
+              x: leftPadding,
+              y: startY + i * lineHeight,
+              fontSize: fontSize,
+              anchor: "left baseline",
+            }
+          )
       )
       .join("");
 
@@ -235,13 +240,6 @@ bad anatomy, inconsistent lighting, different styles
     const svgOverlay = `
       <svg width="${IMG_W}" height="${IMG_H}" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <style>
-            @font-face {
-              font-family: 'InterBold';
-              font-weight: 700;
-              src: url('${fontDataUri}') format('truetype');
-            }
-          </style>
           <linearGradient id="leftFade" x1="0" y1="0" x2="1" y2="0">
             <stop offset="0%"   stop-color="#000000" stop-opacity="0.72" />
             <stop offset="70%"  stop-color="#000000" stop-opacity="0.35" />
@@ -261,20 +259,24 @@ bad anatomy, inconsistent lighting, different styles
           fill="#000000"
           fill-opacity="0.45"
         />
-        <!-- Story title text -->
-        <text
-          x="${leftPadding}"
-          y="${startY}"
-          font-family="InterBold, sans-serif"
-          font-size="${fontSize}"
-          font-weight="700"
-          fill="#FFFFFF"
-          letter-spacing="2"
-          paint-order="stroke"
+        <!-- Story title text shadow layer -->
+        <g
+          fill="#000000"
           stroke="#000000"
-          stroke-width="6"
+          stroke-width="14"
           stroke-linejoin="round"
-        >${tspans}</text>
+        >
+          ${textPaths}
+        </g>
+        <!-- Story title text foreground (simulated Black weight using stroke) -->
+        <g
+          fill="#FFFFFF"
+          stroke="#FFFFFF"
+          stroke-width="3"
+          stroke-linejoin="round"
+        >
+          ${textPaths}
+        </g>
       </svg>`;
 
     const svgBuffer = Buffer.from(svgOverlay);
