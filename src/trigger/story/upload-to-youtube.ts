@@ -2,7 +2,10 @@ import { task, logger } from "@trigger.dev/sdk/v3";
 import { supabase } from "../../lib/supabase";
 import { google } from "googleapis";
 import axios from "axios";
-import { Readable } from "stream";
+import * as fs from "fs";
+import * as os from "os";
+import * as path from "path";
+import { pipeline } from "stream/promises";
 
 type UploadToYoutubePayload = {
   storyId: string;
@@ -57,15 +60,18 @@ export const uploadStoryToYoutubeTask = task({
 
     const youtube = google.youtube({ version: "v3", auth: oauth2Client });
 
-    // 4. Download video from R2/Supabase
-    logger.info("📥 Downloading video...", { videoUrl });
+    // 4. Download video from R2/Supabase to local disk to prevent OOM
+    logger.info("📥 Downloading video to disk...", { videoUrl });
     const response = await axios({
       method: "GET",
       url: videoUrl,
       responseType: "stream",
     });
 
-    // 5. Upload to YouTube
+    const tmpVideoPath = path.join(os.tmpdir(), `youtube-vid-${storyId}.mp4`);
+    await pipeline(response.data, fs.createWriteStream(tmpVideoPath));
+
+    // 5. Upload to YouTube from disk stream
     logger.info("🚀 Uploading to YouTube...", { title: story.title });
 
     try {
@@ -84,7 +90,7 @@ export const uploadStoryToYoutubeTask = task({
           },
         },
         media: {
-          body: Readable.from(response.data),
+          body: fs.createReadStream(tmpVideoPath),
         },
       });
 
@@ -102,11 +108,13 @@ export const uploadStoryToYoutubeTask = task({
             url: story.thumbnail_url,
             responseType: "stream",
           });
+          const tmpThumbPath = path.join(os.tmpdir(), `youtube-thumb-${storyId}.jpg`);
+          await pipeline(thumbResponse.data, fs.createWriteStream(tmpThumbPath));
           
           await youtube.thumbnails.set({
             videoId: res.data.id,
             media: {
-              body: Readable.from(thumbResponse.data),
+              body: fs.createReadStream(tmpThumbPath),
             },
           });
           logger.info("✅ Custom thumbnail applied successfully!");
