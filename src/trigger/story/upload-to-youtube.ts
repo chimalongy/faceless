@@ -90,13 +90,37 @@ export const uploadStoryToYoutubeTask = task({
 
       logger.info("✅ YouTube upload successful!", { 
         videoId: res.data.id,
-        link: `https://www.youtube.com/watch?v={res.data.id}` 
+        link: `https://www.youtube.com/watch?v=${res.data.id}` 
       });
+
+      // 6. Upload Custom Thumbnail if available
+      if (story.thumbnail_url) {
+        try {
+          logger.info("🖼️ Uploading custom thumbnail...", { thumbnailUrl: story.thumbnail_url });
+          const thumbResponse = await axios({
+            method: "GET",
+            url: story.thumbnail_url,
+            responseType: "stream",
+          });
+          
+          await youtube.thumbnails.set({
+            videoId: res.data.id,
+            media: {
+              body: Readable.from(thumbResponse.data),
+            },
+          });
+          logger.info("✅ Custom thumbnail applied successfully!");
+        } catch (thumbError: any) {
+           logger.warn("⚠️ Failed to apply custom thumbnail (but video succeeded)", { 
+             error: thumbError.response?.data || thumbError.message 
+           });
+        }
+      }
 
       return {
         success: true,
         videoId: res.data.id,
-        link: `https://www.youtube.com/watch?v={res.data.id}`,
+        link: `https://www.youtube.com/watch?v=${res.data.id}`,
       };
     } catch (uploadError: any) {
       logger.error("❌ YouTube upload failed", { 

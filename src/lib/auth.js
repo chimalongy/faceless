@@ -19,14 +19,13 @@ export async function setSessionCookie(userId) {
   // For this project, we'll store the User ID directly but signed/encrypted would be better.
   // Ideally, use a library like `jose` to sign a JWT.
   // Let's stick to a simple secure cookie for now as per requirements "Session management with HTTP-only cookies".
-  
-  cookieStore.set(COOKIE_NAME, userId, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge: 60 * 60 * 24 * 7, // 1 week
-    path: '/',
-  });
+    cookieStore.set(COOKIE_NAME, userId, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7, // 1 week
+      path: '/',
+    });
 }
 
 export async function getSessionCookie() {

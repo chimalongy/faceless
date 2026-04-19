@@ -11,6 +11,7 @@ export default function ChannelConfigureForm({ channelId, initialConfig = {} }) 
   const router = useRouter();
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [youtubeConfig, setYoutubeConfig] = useState({
     YT_CLIENT_ID: initialConfig.youtube?.YT_CLIENT_ID || '',
     YT_CLIENT_SECRET: initialConfig.youtube?.YT_CLIENT_SECRET || '',
@@ -19,6 +20,7 @@ export default function ChannelConfigureForm({ channelId, initialConfig = {} }) 
   const isConnected = !!initialConfig.youtube?.YT_REFRESH_TOKEN;
 
   useEffect(() => {
+    setMounted(true);
     if (searchParams.get('success') === 'true') {
       toast.success('YouTube account connected successfully!');
       // Refresh the page data without full reload to get updated token status
@@ -32,7 +34,7 @@ export default function ChannelConfigureForm({ channelId, initialConfig = {} }) 
       return;
     }
     // Redirect to our initiation route
-    window.location.href = `/api/auth/youtube?channelId=${channelId}`;
+    window.location.href = `/api/youtube/auth?channelId=${channelId}`;
   };
 
   const handleSubmit = async (e) => {
@@ -126,7 +128,7 @@ export default function ChannelConfigureForm({ channelId, initialConfig = {} }) 
             <p className="text-[11px] text-gray-400 mt-3 text-center">
               * Make sure to add the redirect URI in Google Cloud Console: 
               <code className="bg-gray-50 px-1 py-0.5 rounded border border-gray-100 mx-1">
-                {typeof window !== 'undefined' ? `${window.location.origin}/api/auth/youtube/callback` : '/api/auth/youtube/callback'}
+                {mounted ? `${window.location.origin}/api/youtube/callback` : '/api/youtube/callback'}
               </code>
             </p>
           )}

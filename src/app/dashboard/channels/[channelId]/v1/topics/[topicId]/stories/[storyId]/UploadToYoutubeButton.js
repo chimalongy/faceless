@@ -24,6 +24,13 @@ export default function UploadToYoutubeButton({ storyId }) {
         throw new Error(data.error || 'Failed to start upload');
       }
 
+      // Check if OAuth is required before proceeding
+      if (data.requiresAuth) {
+        toast.loading('Redirecting to YouTube Authorization...', { id: t });
+        window.location.href = data.authUrl;
+        return;
+      }
+
       toast.success('🎥 YouTube upload task started! Check logs for details.', { id: t });
     } catch (err) {
       console.error('YouTube upload error:', err);
