@@ -9,7 +9,7 @@ export default function UploadToYoutubeButton({ storyId }) {
 
   const handleUpload = async () => {
     setLoading(true);
-    const t = toast.loading('Queuing YouTube upload…');
+    const t = toast.loading('Uploading to YouTube…');
 
     try {
       const res = await fetch('/api/generate/upload-to-youtube', {
@@ -31,7 +31,7 @@ export default function UploadToYoutubeButton({ storyId }) {
         return;
       }
 
-      toast.success('🎥 YouTube upload task started! Check logs for details.', { id: t });
+      toast.success('🎥 YouTube upload complete!', { id: t });
     } catch (err) {
       console.error('YouTube upload error:', err);
       toast.error(err.message || 'Failed to start YouTube upload', { id: t });

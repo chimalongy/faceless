@@ -1,13 +1,70 @@
 'use client';
 
 import { useState } from 'react';
-import { FaCamera, FaTrashAlt, FaUpload, FaSpinner, FaMagic } from 'react-icons/fa';
+import { FaCamera, FaTrashAlt, FaUpload, FaSpinner, FaMagic, FaDownload } from 'react-icons/fa';
 import { updateStoryThumbnail, deleteStoryThumbnail } from '../../../../../../../../../lib/actions';
 import toast from 'react-hot-toast';
 
 export default function StoryThumbnailUpload({ channelId, topicId, storyId, initialThumbnailUrl, storyTitle }) {
   const [isUploading, setIsUploading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+
+  const handleDownload = async () => {
+    if (!initialThumbnailUrl) return;
+
+    const t = toast.loading('Preparing download…');
+    try {
+      const res = await fetch(initialThumbnailUrl);
+      if (!res.ok) throw new Error('Failed to download thumbnail');
+
+      const blob = await res.blob();
+      const contentType = res.headers.get('content-type') || '';
+
+      let ext = 'jpg';
+      if (contentType.includes('png')) ext = 'png';
+      else if (contentType.includes('webp')) ext = 'webp';
+      else if (contentType.includes('jpeg') || contentType.includes('jpg')) ext = 'jpg';
+      else {
+        try {
+          const urlPath = new URL(initialThumbnailUrl, window.location.href).pathname;
+          const last = urlPath.split('/').pop() || '';
+          const m = last.match(/\.([a-zA-Z0-9]+)$/);
+          if (m?.[1]) ext = m[1].toLowerCase();
+        } catch {
+          // ignore URL parsing errors
+        }
+      }
+
+      const safeTitle = (storyTitle || 'story')
+        .toString()
+        .trim()
+        .replace(/[<>:"/\\|?*\x00-\x1F]/g, '')
+        .replace(/\s+/g, '_')
+        .slice(0, 80) || 'story';
+
+      const filename = `${safeTitle}_thumbnail.${ext}`;
+
+      const objectUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = objectUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(objectUrl);
+
+      toast.success('Thumbnail downloaded', { id: t });
+    } catch (error) {
+      console.error(error);
+      toast.error(error?.message || 'Failed to download thumbnail', { id: t });
+      // Fallback: at least open the image so user can save manually
+      try {
+        window.open(initialThumbnailUrl, '_blank', 'noopener,noreferrer');
+      } catch {
+        // ignore
+      }
+    }
+  };
 
   const handleUpload = async (e) => {
     const file = e.target.files[0];
@@ -129,14 +186,25 @@ export default function StoryThumbnailUpload({ channelId, topicId, storyId, init
                   </>
                 )}
               </label>
-              <button 
-                onClick={handleRemove}
-                disabled={isUploading}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-red-500/90 hover:bg-red-600 text-white rounded-lg text-sm font-medium transition-all disabled:opacity-50"
-              >
-                <FaTrashAlt />
-                <span>Remove</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleDownload}
+                  disabled={isUploading || isGenerating}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-white/90 hover:bg-white text-gray-800 rounded-lg text-sm font-medium transition-all disabled:opacity-50"
+                  title="Download thumbnail"
+                >
+                  <FaDownload className="text-cyan-600" />
+                  <span>Download</span>
+                </button>
+                <button 
+                  onClick={handleRemove}
+                  disabled={isUploading}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-red-500/90 hover:bg-red-600 text-white rounded-lg text-sm font-medium transition-all disabled:opacity-50"
+                >
+                  <FaTrashAlt />
+                  <span>Remove</span>
+                </button>
+              </div>
             </div>
             {/* Absolute center Generate button for when thumbnail exists */}
             <button
