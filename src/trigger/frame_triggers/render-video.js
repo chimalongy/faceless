@@ -80,8 +80,11 @@ function normalizeDirection(direction) {
 
 // ─────────────────────────────────────────────
 // Build ffmpeg zoompan filter for Ken Burns
-// Mirrors SlideRenderer switch exactly.
-// Output resolution: 1280x720
+// Uses incremental zoom (zoom+step) instead of
+// absolute (intensity*on/d) to eliminate the
+// zoompan feedback-loop jitter/shakiness bug.
+// scale=8000:-1 prescale gives zoompan enough
+// resolution to avoid pixel-boundary jitter.
 // ─────────────────────────────────────────────
 
 function buildKenBurnsFilter(slide, fps, totalFrames) {
@@ -92,69 +95,67 @@ function buildKenBurnsFilter(slide, fps, totalFrames) {
     const H = 720;
     const d = totalFrames;
 
-    let z = "1";
-    let x = "iw/2-(iw/zoom/2)";
-    let y = "ih/2-(ih/zoom/2)";
+    let z, x, y;
 
     switch (direction) {
         case "zoom-in":
-            z = `1+${intensity}*on/${d}`;
+            z = `if(eq(on,1),1,zoom+${intensity / d})`;
             x = `iw/2-(iw/zoom/2)`;
             y = `ih/2-(ih/zoom/2)`;
             break;
 
         case "zoom-out":
-            z = `${1 + intensity}-${intensity}*on/${d}`;
+            z = `if(eq(on,1),${1 + intensity},zoom-${intensity / d})`;
             x = `iw/2-(iw/zoom/2)`;
             y = `ih/2-(ih/zoom/2)`;
             break;
 
         case "pan-left":
             z = "1";
-            x = `iw/2-(iw/zoom/2)+${10 * intensity}*(iw/1280)*on/${d}`;
+            x = `iw/2-(iw/zoom/2)+${(10 * intensity) / d}*on*(iw/1280)`;
             y = `ih/2-(ih/zoom/2)`;
             break;
 
         case "pan-right":
             z = "1";
-            x = `iw/2-(iw/zoom/2)-${10 * intensity}*(iw/1280)*on/${d}`;
+            x = `iw/2-(iw/zoom/2)-${(10 * intensity) / d}*on*(iw/1280)`;
             y = `ih/2-(ih/zoom/2)`;
             break;
 
         case "pan-up":
             z = "1";
             x = `iw/2-(iw/zoom/2)`;
-            y = `ih/2-(ih/zoom/2)+${10 * intensity}*(ih/720)*on/${d}`;
+            y = `ih/2-(ih/zoom/2)+${(10 * intensity) / d}*on*(ih/720)`;
             break;
 
         case "pan-down":
             z = "1";
             x = `iw/2-(iw/zoom/2)`;
-            y = `ih/2-(ih/zoom/2)-${10 * intensity}*(ih/720)*on/${d}`;
+            y = `ih/2-(ih/zoom/2)-${(10 * intensity) / d}*on*(ih/720)`;
             break;
 
         case "up-left":
             z = "1";
-            x = `iw/2-(iw/zoom/2)+${10 * intensity}*(iw/1280)*on/${d}`;
-            y = `ih/2-(ih/zoom/2)+${10 * intensity}*(ih/720)*on/${d}`;
+            x = `iw/2-(iw/zoom/2)+${(10 * intensity) / d}*on*(iw/1280)`;
+            y = `ih/2-(ih/zoom/2)+${(10 * intensity) / d}*on*(ih/720)`;
             break;
 
         case "up-right":
             z = "1";
-            x = `iw/2-(iw/zoom/2)-${10 * intensity}*(iw/1280)*on/${d}`;
-            y = `ih/2-(ih/zoom/2)+${10 * intensity}*(ih/720)*on/${d}`;
+            x = `iw/2-(iw/zoom/2)-${(10 * intensity) / d}*on*(iw/1280)`;
+            y = `ih/2-(ih/zoom/2)+${(10 * intensity) / d}*on*(ih/720)`;
             break;
 
         case "down-left":
             z = "1";
-            x = `iw/2-(iw/zoom/2)+${10 * intensity}*(iw/1280)*on/${d}`;
-            y = `ih/2-(ih/zoom/2)-${10 * intensity}*(ih/720)*on/${d}`;
+            x = `iw/2-(iw/zoom/2)+${(10 * intensity) / d}*on*(iw/1280)`;
+            y = `ih/2-(ih/zoom/2)-${(10 * intensity) / d}*on*(ih/720)`;
             break;
 
         case "down-right":
             z = "1";
-            x = `iw/2-(iw/zoom/2)-${10 * intensity}*(iw/1280)*on/${d}`;
-            y = `ih/2-(ih/zoom/2)-${10 * intensity}*(ih/720)*on/${d}`;
+            x = `iw/2-(iw/zoom/2)-${(10 * intensity) / d}*on*(iw/1280)`;
+            y = `ih/2-(ih/zoom/2)-${(10 * intensity) / d}*on*(ih/720)`;
             break;
 
         default:
@@ -163,7 +164,9 @@ function buildKenBurnsFilter(slide, fps, totalFrames) {
             y = `ih/2-(ih/zoom/2)`;
     }
 
-    return `zoompan=z='${z}':x='${x}':y='${y}':d=${d}:s=${W}x${H}:fps=${fps}`;
+    // scale=8000:-1 prescales the image to high resolution before zoompan
+    // so the filter has enough pixels to interpolate smoothly without jitter
+    return `scale=8000:-1,zoompan=z='${z}':x='${x}':y='${y}':d=${d}:s=${W}x${H}:fps=${fps}`;
 }
 
 // ─────────────────────────────────────────────
