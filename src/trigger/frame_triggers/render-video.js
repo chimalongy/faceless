@@ -277,7 +277,7 @@ async function renderSlideClip(slide, index, fps, jobId) {
 
 export const renderVideo = task({
     id: "render-video",
-
+    machine: "medium-2x",
     maxDuration: 30000,
 
     run: async (payload) => {
