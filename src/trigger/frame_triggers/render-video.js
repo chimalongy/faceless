@@ -1,18 +1,9 @@
 import { task, logger } from "@trigger.dev/sdk/v3";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "../../lib/supabase.js";
 import fs from "fs";
 import path from "path";
 import { execSync } from "child_process";
 import axios from "axios";
-
-// ─────────────────────────────────────────────
-// Supabase
-// ─────────────────────────────────────────────
-
-const supabase = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_KEY
-);
 
 const BUCKET = process.env.SUPABASE_BUCKET;
 
