@@ -164,8 +164,6 @@ function buildKenBurnsFilter(slide, fps, totalFrames) {
             y = `ih/2-(ih/zoom/2)`;
     }
 
-    // scale=8000:-1 prescales the image to high resolution before zoompan
-    // so the filter has enough pixels to interpolate smoothly without jitter
     return `scale=8000:-1,zoompan=z='${z}':x='${x}':y='${y}':d=${d}:s=${W}x${H}:fps=${fps}`;
 }
 
@@ -235,6 +233,26 @@ function buildSrtFile(cues) {
         })
         .join("\n");
 }
+
+// ─────────────────────────────────────────────
+// Subtitle force_style string
+// Alignment=2 → bottom-center in ASS spec
+// MarginV=40  → 40px from bottom edge
+// Fontsize=18 → smaller than before
+// ─────────────────────────────────────────────
+
+const SUBTITLE_STYLE = [
+    "Fontname=Tahoma",
+    "Fontsize=18",
+    "Bold=1",
+    "PrimaryColour=&H00FFFFFF",
+    "OutlineColour=&H99000000",
+    "BorderStyle=3",
+    "Outline=3",
+    "Shadow=0",
+    "Alignment=2",
+    "MarginV=40",
+].join(",");
 
 // ─────────────────────────────────────────────
 // Render a single slide to a video clip
@@ -350,7 +368,7 @@ export const renderVideo = task({
 
                         execSync(
                             `ffmpeg -y -i "${silentVideoPath}" ` +
-                            `-vf "subtitles='${srtEscaped}':force_style='Fontname=Tahoma,Fontsize=28,Bold=1,PrimaryColour=&H00FFFFFF,OutlineColour=&H99000000,BorderStyle=3,Outline=3,Shadow=0,Alignment=2,MarginV=60'" ` +
+                            `-vf "subtitles='${srtEscaped}':force_style='${SUBTITLE_STYLE}'" ` +
                             `-c:v libx264 -preset fast -pix_fmt yuv420p -an "${subtitledPath}"`,
                             { stdio: "pipe" }
                         );
@@ -385,7 +403,7 @@ export const renderVideo = task({
 
                     execSync(
                         `ffmpeg -y -i "${silentVideoPath}" ` +
-                        `-vf "subtitles='${srtEscaped}':force_style='Fontname=Tahoma,Fontsize=28,Bold=1,PrimaryColour=&H00FFFFFF,OutlineColour=&H99000000,BorderStyle=3,Outline=3,Shadow=0,Alignment=2,MarginV=60'" ` +
+                        `-vf "subtitles='${srtEscaped}':force_style='${SUBTITLE_STYLE}'" ` +
                         `-c:v libx264 -preset fast -pix_fmt yuv420p "${subtitledPath}"`,
                         { stdio: "pipe" }
                     );
