@@ -1,15 +1,16 @@
 import { defineConfig } from "@trigger.dev/sdk/v3";
-import { additionalPackages, additionalFiles } from "@trigger.dev/build/extensions/core";
+import { additionalPackages, additionalFiles, ffmpeg } from "@trigger.dev/build/extensions/core";
 
 export default defineConfig({
   build: {
     extensions: [
+      ffmpeg(),
       additionalPackages({ packages: ["sharp"] }),
       additionalFiles({ files: ["./src/trigger/story/fonts/**"] })
     ],
   },
   project: "proj_nekztniiwrxkoprigyww",
-  runtime: "node",
+  runtime: "node-22",
   logLevel: "log",
   // The max compute seconds a task is allowed to run. If the task run exceeds this duration, it will be stopped.
   // You can override this on an individual task.
