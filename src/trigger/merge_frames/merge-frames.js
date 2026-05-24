@@ -1,16 +1,17 @@
 import { logger, task, usage } from "@trigger.dev/sdk/v3";
 import { supabase } from "../../lib/supabase.js";
+import { r2 } from "../../lib/r2.js";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
 import ffmpeg from "fluent-ffmpeg";
 import axios from "axios";
 import fs from "fs";
 import path from "path";
 import os from "os";
-import {mixBackgroundMusicTask} from "./mix-background-music.js"
-
-const bucketName = process.env.SUPABASE_BUCKET;
+import { mixBackgroundMusicTask } from "./mix-background-music.js";
 
 export const mergeFramesTask = task({
   id: "merge-frames",
+  machine: "small-2x",
   maxDuration: 80000,
 
   run: async (payload, { ctx }) => {
@@ -90,32 +91,26 @@ export const mergeFramesTask = task({
           .on("error", (err) => reject(err));
       });
 
-      // Upload merged video to Supabase
-      logger.log("Uploading merged video...");
+      // Upload merged video to Cloudflare R2
+      logger.log("Uploading merged video to R2...");
       const mergedBuffer = fs.readFileSync(outputPath);
 
-      const { error: uploadError } = await supabase.storage
-        .from(bucketName)
-        .upload(upload_destination, mergedBuffer, {
-          contentType: "video/mp4",
-          upsert: true,
-        });
+      await r2.send(
+        new PutObjectCommand({
+          Bucket: process.env.R2_BUCKET,
+          Key: upload_destination,
+          Body: mergedBuffer,
+          ContentType: "video/mp4",
+        })
+      );
 
-      if (uploadError) throw uploadError;
-
-      // Get the public URL
-      const { data: publicUrlData } = supabase.storage
-        .from(bucketName)
-        .getPublicUrl(upload_destination);
-
-      const public_url = publicUrlData.publicUrl;
-      const upload_path = `${process.env.SUPABASE_URL}/storage/v1/object/public/${bucketName}/${upload_destination}`;
+      const public_url = `${process.env.R2_PUBLIC_URL}/${upload_destination}`;
 
       // Update the story row
       const { data: updatedStory, error: updateError } = await supabase
         .from("stories")
         .update({
-          upload_path: upload_path,
+          upload_path: public_url,
           completion_status: true,
           completd_video_url: public_url,
           public_url: public_url,
@@ -134,7 +129,7 @@ export const mergeFramesTask = task({
         storyId,
         videoUrl: public_url,
         upload_destination,
-      
+
       });
 
       return { success: true, storyId, videoUrl: public_url };
