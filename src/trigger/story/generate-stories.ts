@@ -1,6 +1,6 @@
 import { task, logger } from "@trigger.dev/sdk/v3";
 import { supabase } from "../../lib/supabase";
-import OpenAI from "openai";
+import { llmGenerateStory } from "../../lib/apis/LLM-central.js";
 import { generateStoryEnhancerTask } from "./generated-story-enhancer";
 
 type Point = {
@@ -39,10 +39,7 @@ export const generateStoriesTask = task({
       socialMediaTarget,
     } = payload;
 
-    const client = new OpenAI({
-      baseURL: process.env.BASE_TEN_BASE_URL,
-      apiKey: process.env.BASE_TEN_API_KEY,
-    });
+
 
     logger.info("🎬 Generate stories task started", {
       userId,
@@ -74,76 +71,9 @@ export const generateStoriesTask = task({
       for (let i = 0; i < storyCount; i++) {
         logger.info(`📝 Generating story ${i + 1} of ${storyCount}`);
 
-        const response = await client.chat.completions.create({
-          model: "deepseek-ai/DeepSeek-V3.1",
-          response_format: { type: "json_object" },
-          messages: [
-            {
-              role: "system",
-              content: `
-You are a creative AI content writer for faceless YouTube channels. Generate ONE viral, highly engaging story that lasts about 20 minutes.
-
-Return ONLY valid JSON in this exact structure:
-
-{
-  "title": "string",
-  "content": {
-    "introduction": "string",
-    "points": [
-      {
-        "point_title": "string",
-        "story": "string"
-      }
-    ]
-  }
-}
-
-Rules:
-
-1. Title must be unique, catchy, and intriguing short and MUST NOT include :.
-2. Do NOT reuse any of these titles: ${alreadyCreatedTitlesString}
-3. Story content must:
-   - Begin with a clear "introduction".
-   - Include multiple points as an array under "points".
-   - Each point must have:
-       - "point_title" relevant to the story title.
-       - "story" explaining that point in detail.
-   - Use simple, clear language.
-   - Be highly engaging and captivating.
-   - Be no less than 800 words in total.
-4. Focus on ONE central story entity.
-5. Align all content closely with the title.
-6. Do not wrap JSON in markdown or backticks.
-7. Do not include explanations or extra text outside JSON.
-
-Topic details:
-topic_name: ${topicName}
-topic_description: ${topicDescription}
-              `,
-            },
-            {
-              role: "user",
-              content: `
-topic_name: ${topicName}
-topic_description: ${topicDescription}
-              `,
-            },
-          ],
-        });
-
-        let rawContent = response.choices[0]?.message?.content ?? "";
-        logger.info("📦 Raw AI response received");
-
-        rawContent = rawContent.replace(/```json/g, "").replace(/```/g, "").trim();
-
-        let parsed: Story;
-
-        try {
-          parsed = JSON.parse(rawContent);
-        } catch (parseError) {
-          logger.error("❌ Failed to parse AI JSON response", { rawContent });
-          throw new Error("Invalid AI JSON response format");
-        }
+        logger.info("🤖 Calling LLM to generate story");
+        const parsed = await llmGenerateStory({ topicName, topicDescription, alreadyCreatedTitlesString }) as Story;
+        logger.info("📦 AI response received");
 
         // ✅ Validate structure
         if (

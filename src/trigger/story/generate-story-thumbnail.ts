@@ -1,5 +1,5 @@
 import { task, logger } from "@trigger.dev/sdk/v3";
-import OpenAI from "openai";
+import { llmEnhanceThumbnailPrompt } from "../../lib/apis/LLM-central.js";
 import axios from "axios";
 import sharp from "sharp";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
@@ -35,82 +35,21 @@ export const generateStoryThumbnailTask = task({
     const imageTheme = topic.image_generation_theme;
 
     // 2. LLM Prompt Enhancement (LOCKED STYLE)
-    const client = new OpenAI({
-      baseURL: process.env.BASE_TEN_BASE_URL,
-      apiKey: process.env.BASE_TEN_API_KEY,
-    });
+
 
     logger.info("🧠 Enhancing thumbnail prompt");
 
-    const llmResponse = await client.chat.completions.create({
-      model: "deepseek-ai/DeepSeek-V3.1",
-      response_format: { type: "json_object" },
-      messages: [
-        {
-          role: "system",
-          content: `
-You are an expert YouTube thumbnail prompt engineer.
-
-Your job is to maintain STRICT visual consistency across all thumbnails.
-
-You MUST follow this EXACT structure.
-
-ONLY change:
-- HUMAN CHARACTER
-- EMOTION
-
-------------------------------------
-
-[STYLE BASE]
-cinematic youtube thumbnail, high contrast lighting, bold colors,
-dark background, strong contrast subject, soft vignette,
-ultra sharp, 4k, dramatic lighting, studio quality,
-consistent color grading, professional youtube thumbnail style
-
-[HUMAN CHARACTER]
-a human character derived from the story
-
-[EMOTION]
-Highly exaggerated emotion (shock, fear, excitement, confusion) depending on the story
-
-[COMPOSITION]
-the human subject MUST be on the RIGHT, looking LEFT,
-medium close-up,
-blurred background,
-EMPTY SPACE on LEFT for text (do not include text),
-the human subject takes 30-40% of frame
-DO NOT INCLUDE ANY FORM OF TEXT ON THE IMAGE
-
-[STYLE LOCK]
-same lighting, same color grading, same framing,
-same camera angle, same subject scale,
-NO style variation
-
-------------------------------------
-
-Return JSON:
-{ "modified_prompt": "string" }
-          `,
-        },
-        {
-          role: "user",
-          content: `
-STORY TITLE: ${story.title}
-CONTENT: ${story.content?.slice(0, 500)}
-BASE PROMPT: ${basePrompt}
-THEME: ${imageTheme}
-          `,
-        },
-      ],
-    });
-
     let enhancedPrompt = basePrompt;
-
     try {
-      const parsed = JSON.parse(llmResponse.choices[0]?.message?.content || "{}");
+      const parsed = await llmEnhanceThumbnailPrompt({
+        storyTitle: story.title,
+        storyContent: story.content?.slice(0, 500),
+        basePrompt,
+        imageTheme,
+      });
       enhancedPrompt = parsed.modified_prompt || basePrompt;
     } catch (err: any) {
-      logger.warn("Failed to parse enhanced prompt", { error: err.message });
+      logger.warn("Failed to enhance thumbnail prompt", { error: err.message });
     }
 
     logger.info("🎨 Final Prompt", { enhancedPrompt });

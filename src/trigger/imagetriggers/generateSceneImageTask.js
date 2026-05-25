@@ -1,6 +1,6 @@
 import { task, logger } from "@trigger.dev/sdk/v3";
 import { supabase } from "../../lib/supabase";
-import OpenAI from "openai";
+import { llmEnhanceImagePrompt } from "../../lib/apis/LLM-central.js";
 import { downloadandUploadImageToSupabase } from "../../lib/tasks/imagedownloader";
 
 function delay(ms) {
@@ -18,10 +18,7 @@ export const generateSceneImageTask = task({
       sceneNumber: scene.sceneNumber,
     });
 
-    const client = new OpenAI({
-      baseURL: process.env.BASE_TEN_BASE_URL,
-      apiKey: process.env.BASE_TEN_API_KEY,
-    });
+
 
     // Fetch story
     const { data: story, error: storyError } = await supabase
@@ -64,56 +61,19 @@ export const generateSceneImageTask = task({
         imageNumber: i,
       });
 
-      // Improve prompt with LLM
-      const response = await client.chat.completions.create({
-        model: "deepseek-ai/DeepSeek-V3.1",
-        response_format: { type: "json_object" },
-        messages: [
-          {
-            role: "system",
-            content: `
-You are an expert cinematic AI image prompt engineer.
-
-Enhance the prompt visually while keeping its meaning.
-
-Return JSON:
-
-{
- "modified_prompt": "string"
-}
-`,
-          },
-          {
-            role: "user",
-            content: `
-STORY:
-${story.content}
-
-SCENE_NUMBER:
-${sceneNumber}
-
-IMAGE_NUMBER:
-${i}
-
-ORIGINAL_PROMPT:
-${originalPrompt}
-
-IMAGE_GENERATION_THEME:
-${topic.image_generation_theme}
-`,
-          },
-        ],
-      });
-
+      // Improve prompt via centralized LLM
       let enhancedPrompt = originalPrompt;
-
       try {
-        const parsed = JSON.parse(
-          response.choices[0].message.content || "{}"
-        );
+        const parsed = await llmEnhanceImagePrompt({
+          storyContent: story.content,
+          sceneNumber,
+          imageNumber: i,
+          originalPrompt,
+          imageGenerationTheme: topic.image_generation_theme,
+        });
         enhancedPrompt = parsed.modified_prompt || originalPrompt;
       } catch {
-        logger.warn("Failed to parse LLM response");
+        logger.warn("Failed to enhance image prompt via LLM, using original");
       }
 
       const destinationPath =
