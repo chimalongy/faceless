@@ -29,11 +29,69 @@ export default function SceneAudioCard({ scene, audio, storyId, GenerateButton }
         <div className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-purple-500 to-fuchsia-500 scale-x-0 group-hover:scale-x-100 transition-transform origin-left pointer-events-none" />
       )}
 
-      <div className="flex items-center gap-4 p-4">
+      {/* ── Mobile: stacked layout ── */}
+      <div className="flex flex-col gap-3 p-4 sm:hidden">
+        {/* Row 1: icon + scene info */}
+        <div className="flex items-center gap-3">
+          <div className="flex-shrink-0">
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+              audio
+                ? 'bg-gradient-to-br from-purple-500 to-fuchsia-500 shadow-md'
+                : 'bg-purple-50'
+            }`}>
+              {audio ? (
+                <FaMusic className="text-white text-xs" />
+              ) : (
+                <span className="text-purple-500 font-bold text-sm">{scene.sceneNumber}</span>
+              )}
+            </div>
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
+              <h4 className="font-semibold text-stone-900 text-sm">Scene {scene.sceneNumber}</h4>
+              {scene.title && (
+                <span className="text-xs text-stone-400 truncate">• {scene.title}</span>
+              )}
+            </div>
+            {audio?.is_ai_generated && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-50 border border-purple-100 text-purple-700 text-[10px] font-semibold mt-0.5">
+                <span className="text-[8px]">✨</span>AI
+              </span>
+            )}
+            {audio ? (
+              <div className="flex items-center gap-2 text-xs text-stone-400 mt-0.5">
+                {audio.audio_format && <span className="uppercase font-medium">{audio.audio_format}</span>}
+                {audio.duration_seconds && (
+                  <span>{Math.floor(audio.duration_seconds / 60)}:{(audio.duration_seconds % 60).toString().padStart(2, '0')}</span>
+                )}
+              </div>
+            ) : (
+              <p className="text-xs text-stone-400 mt-0.5">No audio yet</p>
+            )}
+          </div>
+        </div>
+        {/* Row 2: player or generate button — full width */}
+        <div className="w-full">
+          {audio ? (
+            <SceneAudioPlayer
+              ref={audioPlayerRef}
+              audioUrl={audio.audio_url}
+              mimeType={`audio/${audio.audio_format || 'wav'}`}
+            />
+          ) : (
+            <div className="w-full [&>button]:w-full [&>button]:justify-center">
+              {GenerateButton}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── Desktop: single-row layout ── */}
+      <div className="hidden sm:flex items-center gap-4 p-4">
         <div className="flex-shrink-0">
           <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-            audio 
-              ? 'bg-gradient-to-br from-purple-500 to-fuchsia-500 shadow-md' 
+            audio
+              ? 'bg-gradient-to-br from-purple-500 to-fuchsia-500 shadow-md'
               : 'bg-purple-50'
           }`}>
             {audio ? (
@@ -45,24 +103,17 @@ export default function SceneAudioCard({ scene, audio, storyId, GenerateButton }
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <h4 className="font-semibold text-stone-900 text-sm">
-              Scene {scene.sceneNumber}
-            </h4>
-            {scene.title && (
-              <span className="text-xs text-stone-400">• {scene.title}</span>
-            )}
+            <h4 className="font-semibold text-stone-900 text-sm">Scene {scene.sceneNumber}</h4>
+            {scene.title && <span className="text-xs text-stone-400">• {scene.title}</span>}
             {audio?.is_ai_generated && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-50 border border-purple-100 text-purple-700 text-[10px] font-semibold">
-                <span className="text-[8px]">✨</span>
-                AI Generated
+                <span className="text-[8px]">✨</span>AI Generated
               </span>
             )}
           </div>
           {audio ? (
             <div className="flex items-center gap-3 text-xs text-stone-400">
-              {audio.audio_format && (
-                <span className="uppercase font-medium">{audio.audio_format}</span>
-              )}
+              {audio.audio_format && <span className="uppercase font-medium">{audio.audio_format}</span>}
               {audio.duration_seconds && (
                 <span>{Math.floor(audio.duration_seconds / 60)}:{(audio.duration_seconds % 60).toString().padStart(2, '0')}</span>
               )}
@@ -73,7 +124,7 @@ export default function SceneAudioCard({ scene, audio, storyId, GenerateButton }
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           {audio ? (
-            <SceneAudioPlayer 
+            <SceneAudioPlayer
               ref={audioPlayerRef}
               audioUrl={audio.audio_url}
               mimeType={`audio/${audio.audio_format || 'wav'}`}
