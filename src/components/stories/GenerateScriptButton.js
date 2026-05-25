@@ -21,7 +21,6 @@ export default function GenerateScriptButton({ isGenerated, storyId }) {
 
       if (response.ok) {
         alert('✅ Script generation started!');
-        // Refresh the page to see updates
         window.location.reload();
       } else {
         alert(`❌ Error: ${data.error || 'Failed to generate script'}`);
@@ -39,9 +38,13 @@ export default function GenerateScriptButton({ isGenerated, storyId }) {
       <button
         onClick={handleGenerateScript}
         disabled={loading}
-        className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-lg font-medium flex items-center gap-2 transition-all shadow-lg shadow-emerald-500/25 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        className="inline-flex items-center gap-2 bg-white border border-emerald-200 text-emerald-700 text-sm font-semibold px-4 py-2.5 rounded-xl hover:bg-emerald-50 hover:border-emerald-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {loading ? <span className="animate-spin">⌛</span> : <FaMagic />}
+        {loading ? (
+          <span className="w-4 h-4 border-2 border-emerald-300 border-t-emerald-600 rounded-full animate-spin" />
+        ) : (
+          <FaMagic className="text-xs" />
+        )}
         {loading ? 'Regenerating...' : 'Regenerate Script'}
       </button>
     );
@@ -51,9 +54,13 @@ export default function GenerateScriptButton({ isGenerated, storyId }) {
     <button
       onClick={handleGenerateScript}
       disabled={loading}
-      className="bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white px-6 py-2 rounded-lg font-medium flex items-center gap-2 transition-all shadow-lg shadow-orange-500/25 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+      className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white text-sm font-semibold px-5 py-2.5 rounded-xl shadow-md shadow-orange-500/20 hover:opacity-90 hover:-translate-y-px active:translate-y-0 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
     >
-      {loading ? <span className="animate-spin">⌛</span> : <FaMagic />}
+      {loading ? (
+        <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+      ) : (
+        <FaMagic className="text-xs" />
+      )}
       {loading ? 'Generating...' : 'Generate Script'}
     </button>
   );

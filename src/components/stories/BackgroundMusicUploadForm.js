@@ -11,16 +11,16 @@ function SubmitButton({ disabled }) {
     <button
       type="submit"
       disabled={pending || disabled}
-      className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium transition-all shadow-lg shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
+      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-fuchsia-500 hover:opacity-90 text-white font-semibold text-sm transition-all shadow-md shadow-purple-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
     >
       {pending ? (
         <>
-          <span className="animate-spin">⌛</span>
+          <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
           Uploading...
         </>
       ) : (
         <>
-          <FaUpload />
+          <FaUpload className="text-xs" />
           Upload Music
         </>
       )}
@@ -37,15 +37,13 @@ export default function BackgroundMusicUploadForm({ topicId, storyId, scriptScen
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Validate file type
       const validTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/m4a'];
       if (!validTypes.includes(file.type) && !file.name.match(/\.(mp3|wav|ogg|m4a)$/i)) {
         toast.error('Please select a valid audio file (MP3, WAV, OGG, or M4A)');
         return;
       }
 
-      // Validate file size (max 50MB)
-      const maxSize = 50 * 1024 * 1024; // 50MB
+      const maxSize = 50 * 1024 * 1024;
       if (file.size > maxSize) {
         toast.error('File size must be less than 50MB');
         return;
@@ -57,7 +55,7 @@ export default function BackgroundMusicUploadForm({ topicId, storyId, scriptScen
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!selectedFile) {
       toast.error('Please select a music file');
       return;
@@ -81,17 +79,14 @@ export default function BackgroundMusicUploadForm({ topicId, storyId, scriptScen
         const { uploadBackgroundMusic } = await import('../../lib/actions');
         await uploadBackgroundMusic(formData);
       }
-      
+
       toast.success('Background music uploaded successfully!');
-      // Reset form
       setSelectedFile(null);
       setVolumeLevel(0.5);
       setSceneNumber('');
       setIsLooping(true);
-      // Reset file input
       const fileInput = document.getElementById('music-file');
       if (fileInput) fileInput.value = '';
-      // Reload page to show new music
       window.location.reload();
     } catch (error) {
       toast.error(error.message || 'Failed to upload music');
@@ -102,7 +97,7 @@ export default function BackgroundMusicUploadForm({ topicId, storyId, scriptScen
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* File Upload */}
       <div className="space-y-2">
-        <label htmlFor="music-file" className="text-sm font-medium text-gray-700">
+        <label htmlFor="music-file" className="text-sm font-medium text-stone-700">
           Music File <span className="text-red-500">*</span>
         </label>
         <div className="relative">
@@ -116,43 +111,43 @@ export default function BackgroundMusicUploadForm({ topicId, storyId, scriptScen
           />
           <label
             htmlFor="music-file"
-            className="flex items-center gap-3 px-6 py-4 border-2 border-dashed border-purple-300 rounded-xl cursor-pointer hover:border-purple-400 hover:bg-purple-50/50 transition-all"
+            className="flex items-center gap-3 px-5 py-4 border-2 border-dashed border-purple-200 rounded-xl cursor-pointer hover:border-purple-300 hover:bg-purple-50/30 transition-all"
           >
-            <div className="p-2 bg-purple-100 rounded-lg">
-              <FaMusic className="text-purple-600" />
+            <div className="p-2 bg-purple-50 rounded-lg">
+              <FaMusic className="text-purple-500" />
             </div>
             <div className="flex-1">
               {selectedFile ? (
                 <div>
-                  <p className="font-medium text-gray-900">{selectedFile.name}</p>
-                  <p className="text-sm text-gray-500">
+                  <p className="font-medium text-stone-900 text-sm">{selectedFile.name}</p>
+                  <p className="text-xs text-stone-400">
                     {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
                   </p>
                 </div>
               ) : (
                 <div>
-                  <p className="font-medium text-gray-900">Click to select music file</p>
-                  <p className="text-sm text-gray-500">MP3, WAV, OGG, or M4A (max 50MB)</p>
+                  <p className="font-medium text-stone-900 text-sm">Click to select music file</p>
+                  <p className="text-xs text-stone-400">MP3, WAV, OGG, or M4A (max 50MB)</p>
                 </div>
               )}
             </div>
-            <FaUpload className="text-purple-500" />
+            <FaUpload className="text-purple-400" />
           </label>
         </div>
       </div>
 
       {storyId && scriptScenes.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {/* Scene Assignment */}
           <div className="space-y-2">
-            <label htmlFor="sceneNumber" className="text-sm font-medium text-gray-700">
+            <label htmlFor="sceneNumber" className="text-sm font-medium text-stone-700">
               Assign to Scene (Optional)
             </label>
             <select
               id="sceneNumber"
               value={sceneNumber}
               onChange={(e) => setSceneNumber(e.target.value)}
-              className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none"
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none text-sm"
             >
               <option value="">Entire Story</option>
               {scriptScenes.map((scene) => (
@@ -165,7 +160,7 @@ export default function BackgroundMusicUploadForm({ topicId, storyId, scriptScen
 
           {/* Looping Option */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700">Looping</label>
+            <label className="text-sm font-medium text-stone-700">Looping</label>
             <div className="flex items-center gap-4 py-2">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -174,7 +169,7 @@ export default function BackgroundMusicUploadForm({ topicId, storyId, scriptScen
                   onChange={() => setIsLooping(true)}
                   className="w-4 h-4 text-purple-600 focus:ring-purple-500"
                 />
-                <span className="text-sm text-gray-600">Yes</span>
+                <span className="text-sm text-stone-600">Yes</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -183,7 +178,7 @@ export default function BackgroundMusicUploadForm({ topicId, storyId, scriptScen
                   onChange={() => setIsLooping(false)}
                   className="w-4 h-4 text-purple-600 focus:ring-purple-500"
                 />
-                <span className="text-sm text-gray-600">No</span>
+                <span className="text-sm text-stone-600">No</span>
               </label>
             </div>
           </div>
@@ -192,8 +187,8 @@ export default function BackgroundMusicUploadForm({ topicId, storyId, scriptScen
 
       {/* Volume Level */}
       <div className="space-y-2">
-        <label htmlFor="volumeLevel" className="text-sm font-medium text-gray-700">
-          Volume Level: {Math.round(volumeLevel * 100)}%
+        <label htmlFor="volumeLevel" className="text-sm font-medium text-stone-700">
+          Volume Level: <span className="text-purple-600 font-semibold">{Math.round(volumeLevel * 100)}%</span>
         </label>
         <input
           type="range"
@@ -203,9 +198,9 @@ export default function BackgroundMusicUploadForm({ topicId, storyId, scriptScen
           step="0.01"
           value={volumeLevel}
           onChange={(e) => setVolumeLevel(parseFloat(e.target.value))}
-          className="w-full h-2 bg-purple-200 rounded-lg appearance-none cursor-pointer accent-purple-500"
+          className="w-full h-2 bg-purple-100 rounded-lg appearance-none cursor-pointer accent-purple-500"
         />
-        <div className="flex justify-between text-xs text-gray-500">
+        <div className="flex justify-between text-xs text-stone-400">
           <span>0%</span>
           <span>50%</span>
           <span>100%</span>
@@ -219,4 +214,3 @@ export default function BackgroundMusicUploadForm({ topicId, storyId, scriptScen
     </form>
   );
 }
-

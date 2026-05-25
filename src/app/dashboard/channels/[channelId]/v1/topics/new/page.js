@@ -1,11 +1,18 @@
+// src/app/dashboard/channels/[channelId]/[channelType]/topics/new/page.js
 'use client';
 
 import { createTopic } from '../../../../../../../lib/actions';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useFormStatus } from 'react-dom';
-import { FaArrowLeft, FaSpinner } from 'react-icons/fa';
-import { getChannel } from '../../../../../../../lib/actions';
+import {
+  FaArrowLeft,
+  FaSpinner,
+  FaPlus,
+  FaLayerGroup,
+  FaMusic,
+  FaImage,
+} from 'react-icons/fa';
 import { usePathname } from 'next/navigation';
 import { get_channel_type } from '../../../../../../client_lib';
 
@@ -16,14 +23,18 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="btn-primary w-full md:w-auto px-8"
+      className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white text-sm font-semibold px-7 py-3 rounded-xl shadow-md shadow-orange-500/20 hover:opacity-90 hover:-translate-y-px active:translate-y-0 transition-all disabled:opacity-60 disabled:hover:translate-y-0 disabled:cursor-not-allowed w-full sm:w-auto"
     >
       {pending ? (
-        <span className="flex items-center gap-2">
-          <FaSpinner className="animate-spin" /> Creating...
-        </span>
+        <>
+          <FaSpinner className="animate-spin text-xs" />
+          <span>Creating...</span>
+        </>
       ) : (
-        'Create Topic'
+        <>
+          <FaPlus className="text-xs" />
+          <span>Create Topic</span>
+        </>
       )}
     </button>
   );
@@ -32,92 +43,144 @@ function SubmitButton() {
 export default function NewTopicPage() {
   const params = useParams();
   const channelId = params.channelId;
-  let path = usePathname()
-  let channel_type = get_channel_type(channelId, path)
+  const path = usePathname();
+  const channel_type = get_channel_type(channelId, path);
 
-
-
-
-
-
-
-
+  const formFields = [
+    {
+      id: 'name',
+      name: 'name',
+      label: 'Topic Name',
+      required: true,
+      placeholder: 'e.g. Ancient History',
+      icon: <FaLayerGroup className="text-gray-300 text-sm" />,
+      type: 'text',
+      rows: null,
+    },
+    {
+      id: 'description',
+      name: 'description',
+      label: 'Description',
+      required: false,
+      placeholder: 'What kind of stories will go here?',
+      icon: null,
+      type: 'textarea',
+      rows: 5,
+    },
+    {
+      id: 'background_music_prompt',
+      name: 'background_music_prompt',
+      label: 'Background Music Prompt',
+      required: false,
+      placeholder: 'e.g. Ambient electronic background music',
+      icon: <FaMusic className="text-gray-300 text-sm" />,
+      type: 'textarea',
+      rows: 2,
+      optional: true,
+    },
+    {
+      id: 'image_generation_theme',
+      name: 'image_generation_theme',
+      label: 'Image Generation Theme',
+      required: false,
+      placeholder: 'e.g. Cinematic lighting, photorealistic',
+      icon: <FaImage className="text-gray-300 text-sm" />,
+      type: 'textarea',
+      rows: 2,
+      optional: true,
+    },
+  ];
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <Link href={`/dashboard/channels/${channelId}/${channel_type}`} className="text-gray-500 hover:text-gray-900 flex items-center gap-2 mb-6">
-        <FaArrowLeft /> Back to Channel
-      </Link>
+    <div className="space-y-8 pb-10 px-2 max-w-2xl">
 
+      {/* ── PAGE HEADER ── */}
       <div>
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent">
-          Create New Topic
+        <Link
+          href={`/dashboard/channels/${channelId}/${channel_type}`}
+          className="inline-flex items-center gap-2 text-[13px] font-medium text-stone-400 hover:text-orange-500 transition-colors mb-4 no-underline"
+        >
+          <FaArrowLeft className="text-xs" />
+          Back to Channel
+        </Link>
+
+        <p className="text-[12px] font-bold tracking-[0.12em] text-orange-500 uppercase mb-1.5">
+          New Topic
+        </p>
+        <h1
+          className="text-[28px] font-extrabold text-stone-900 tracking-tight leading-tight"
+          style={{ fontFamily: "'Syne', sans-serif" }}
+        >
+          Create Topic
         </h1>
-        <p className="text-gray-500 mt-1">Organize your content ideas under a specific topic.</p>
+        <p className="text-[15px] text-stone-400 mt-1">
+          Organize your content ideas under a specific topic.
+        </p>
       </div>
 
-      <div className="glass-panel p-8 rounded-xl border border-orange-100 shadow-sm">
+      {/* ── FORM CARD ── */}
+      <div className="bg-white rounded-2xl border border-gray-100 p-6 sm:p-8 shadow-sm">
         <form action={createTopic} className="space-y-6">
           <input type="hidden" name="channelId" value={channelId} />
 
-          <div className="space-y-2">
-            <label htmlFor="name" className="text-sm font-medium text-gray-700">
-              Topic Name
-            </label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              required
-              placeholder="e.g. Ancient History"
-              className="input-field"
-            />
-          </div>
+          {formFields.map((field) => (
+            <div key={field.id} className="space-y-2.5">
+              <label
+                htmlFor={field.id}
+                className="block text-[13px] font-semibold text-stone-700 tracking-tight"
+              >
+                {field.label}
+                {field.optional && (
+                  <span className="ml-1.5 text-[11px] font-medium text-gray-400">
+                    Optional
+                  </span>
+                )}
+              </label>
+              <div className="relative">
+                {field.icon && (
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    {field.icon}
+                  </div>
+                )}
+                {field.type === 'textarea' ? (
+                  <textarea
+                    id={field.id}
+                    name={field.name}
+                    rows={field.rows}
+                    placeholder={field.placeholder}
+                    className={`w-full ${field.icon ? 'pl-11' : 'px-4'
+                      } pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-[14px] text-stone-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-400 transition-all resize-none`}
+                  />
+                ) : (
+                  <input
+                    type="text"
+                    id={field.id}
+                    name={field.name}
+                    required={field.required}
+                    placeholder={field.placeholder}
+                    className={`w-full ${field.icon ? 'pl-11' : 'px-4'
+                      } pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-[14px] text-stone-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-400 transition-all`}
+                  />
+                )}
+              </div>
+            </div>
+          ))}
 
-          <div className="space-y-2">
-            <label htmlFor="description" className="text-sm font-medium text-gray-700">
-              Description
-            </label>
-            <textarea
-              id="description"
-              name="description"
-              rows={4}
-              placeholder="What kind of stories will go here?"
-              className="input-field resize-none"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="background_music_prompt" className="text-sm font-medium text-gray-700">
-              Background Music Prompt (Optional)
-            </label>
-            <textarea
-              id="background_music_prompt"
-              name="background_music_prompt"
-              rows={2}
-              placeholder="e.g. Ambient electronic background music"
-              className="input-field resize-none"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="image_generation_theme" className="text-sm font-medium text-gray-700">
-              Image Generation Theme (Optional)
-            </label>
-            <textarea
-              id="image_generation_theme"
-              name="image_generation_theme"
-              rows={2}
-              placeholder="e.g. Cinematic lighting, photorealistic"
-              className="input-field resize-none"
-            />
-          </div>
-
-          <div className="flex justify-end pt-4">
-            <SubmitButton />
+          {/* Submit */}
+          <div className="flex flex-col sm:flex-row sm:justify-end gap-3 pt-2">
+            <Link
+              href={`/dashboard/channels/${channelId}/${channel_type}`}
+              className="inline-flex items-center justify-center gap-2 text-[13px] font-semibold text-stone-500 px-5 py-3 rounded-xl border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all no-underline order-2 sm:order-1"
+            >
+              Cancel
+            </Link>
+            <div className="order-1 sm:order-2">
+              <SubmitButton />
+            </div>
           </div>
         </form>
       </div>
+
     </div>
   );
 }

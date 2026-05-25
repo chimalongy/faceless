@@ -1,7 +1,19 @@
+// src/app/dashboard/channels/[channelId]/[channelType]/topics/[topicId]/page.js
 import Link from 'next/link';
 import { getTopic } from '../../../../../../../lib/actions';
 import { supabase } from '../../../../../../../lib/supabase';
-import { FaArrowLeft, FaPlus, FaFileAlt, FaMagic, FaClock, FaMusic, FaRobot, FaChevronRight, FaEllipsisV } from 'react-icons/fa';
+import {
+  FaArrowLeft,
+  FaPlus,
+  FaFileAlt,
+  FaMagic,
+  FaClock,
+  FaMusic,
+  FaRobot,
+  FaArrowRight,
+  FaCheckCircle,
+  FaSpinner,
+} from 'react-icons/fa';
 import { notFound } from 'next/navigation';
 import { getChannel } from '../../../../../../../lib/actions';
 import GenerateStoriesButton from './GenerateStoriesButton';
@@ -47,186 +59,213 @@ export default async function TopicDetailsPage({ params }) {
   const scriptedCount = stories.filter(s => s.script_generated).length;
   const completionRate = stories.length > 0 ? Math.round((scriptedCount / stories.length) * 100) : 0;
 
+  const statCards = [
+    {
+      label: 'Stories',
+      value: stories.length,
+      icon: <FaFileAlt className="text-sm" />,
+      iconBg: 'bg-orange-50',
+      iconColor: 'text-orange-500',
+      accent: 'border-orange-500',
+      trend: 'Total stories',
+    },
+    {
+      label: 'Scripted',
+      value: scriptedCount,
+      icon: <FaCheckCircle className="text-sm" />,
+      iconBg: 'bg-emerald-50',
+      iconColor: 'text-emerald-600',
+      accent: 'border-emerald-500',
+      trend: 'AI generated',
+    },
+    {
+      label: 'Progress',
+      value: `${completionRate}%`,
+      icon: <FaSpinner className="text-sm" />,
+      iconBg: 'bg-amber-50',
+      iconColor: 'text-amber-500',
+      accent: 'border-amber-500',
+      trend: 'Completion',
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-orange-50/30">
-      {/* Sticky Header */}
-      <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-orange-100/50 shadow-sm">
-        <div className="px-4 py-3 sm:px-6">
-          <div className="flex items-center gap-3">
-            <Link
-              href={`/dashboard/channels/${channelId}/${channel.channel_type}`}
-              className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-orange-50 text-orange-600 hover:bg-orange-100 transition-colors"
-              aria-label="Back to Channel"
-            >
-              <FaArrowLeft className="text-sm" />
-            </Link>
+    <div className="space-y-8 pb-10 px-2">
 
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 text-sm text-gray-500">
-                <span className="truncate">{channel.name}</span>
-                <FaChevronRight className="text-xs text-gray-400" />
-                <span className="truncate text-orange-600 font-medium">{topic.name}</span>
-              </div>
-            </div>
+      {/* ── BACK LINK ── */}
+      <Link
+        href={`/dashboard/channels/${channelId}/${channel.channel_type}`}
+        className="inline-flex items-center gap-2 text-[13px] font-medium text-stone-400 hover:text-orange-500 transition-colors no-underline"
+      >
+        <FaArrowLeft className="text-xs" />
+        Back to {channel.name}
+      </Link>
 
-            {/* Mobile Actions Menu (simplified) */}
-            <div className="sm:hidden">
-              <button className="w-8 h-8 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center">
-                <FaEllipsisV className="text-sm" />
-              </button>
-            </div>
+      {/* ── PAGE HEADER ── */}
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-100 text-[11px] font-semibold text-emerald-600">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              Active
+            </span>
           </div>
+          <h1
+            className="text-[22px] sm:text-[28px] font-extrabold text-stone-900 tracking-tight leading-tight"
+            style={{ fontFamily: "'Syne', sans-serif" }}
+          >
+            {topic.name}
+          </h1>
+          {topic.description && (
+            <p className="text-[14px] sm:text-[15px] text-stone-400 mt-1 line-clamp-2">
+              {topic.description}
+            </p>
+          )}
+        </div>
+
+        <div className="flex items-center gap-3 self-start sm:self-auto flex-shrink-0">
+          <Link
+            href={`/dashboard/channels/${channelId}/v1/topics/${topicId}/background-music`}
+            className="inline-flex items-center gap-2 bg-white border border-gray-200 text-stone-600 text-sm font-semibold px-4 py-2.5 rounded-xl hover:border-purple-300 hover:bg-purple-50 hover:text-purple-600 transition-all no-underline"
+          >
+            <FaMusic className="text-xs" />
+            <span className="hidden sm:inline">Music</span>
+          </Link>
+          <Link
+            href={`/dashboard/channels/${channelId}/${channel.channel_type}/topics/${topicId}/stories/new`}
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white text-sm font-semibold px-5 py-2.5 rounded-xl shadow-md shadow-orange-500/20 hover:opacity-90 hover:-translate-y-px active:translate-y-0 transition-all no-underline"
+          >
+            <FaPlus className="text-xs" />
+            New Story
+          </Link>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="px-4 py-6 sm:px-6 sm:py-8">
-        <div className="max-w-7xl mx-auto">
-          {/* Topic Header Card */}
-          <div className="bg-white/90 backdrop-blur-sm rounded-2xl border border-orange-100/60 shadow-sm p-6 sm:p-8 mb-8">
-            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-              <div className="space-y-4 flex-1">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-amber-100 to-orange-100 rounded-full border border-amber-200">
-                  <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></div>
-                  <span className="text-xs sm:text-sm font-medium text-amber-800">Active Topic</span>
-                </div>
-
-                <div>
-                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-3">
-                    {topic.name}
-                  </h1>
-                  <p className="text-sm sm:text-base text-gray-600 max-w-3xl leading-relaxed">
-                    {topic.description}
-                  </p>
-                </div>
-
-                {/* Mobile Stats */}
-                <div className="flex flex-wrap items-center gap-4 sm:hidden">
-                  <div className="flex items-center gap-2 bg-gradient-to-r from-emerald-50 to-emerald-50/50 px-3 py-1.5 rounded-full border border-emerald-100">
-                    <FaFileAlt className="text-emerald-500 text-xs" />
-                    <span className="text-sm font-medium text-emerald-700">{stories.length}</span>
-                    <span className="text-xs text-emerald-600">stories</span>
-                  </div>
-
-                  {stories[0] && (
-                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                      <FaClock className="text-amber-500" />
-                      <span>Last {formatDate(stories[0].created_at)}</span>
-                    </div>
-                  )}
-                </div>
+      {/* ── STAT CARDS ── */}
+      <div className="grid grid-cols-3 gap-3 px-2">
+        {statCards.map((card) => (
+          <div
+            key={card.label}
+            className="group bg-white rounded-2xl border border-gray-100 p-4 sm:p-6 shadow-sm hover:shadow-[0_8px_24px_rgba(0,0,0,0.07)] hover:-translate-y-0.5 transition-all duration-200"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div
+                className={`w-8 h-8 sm:w-10 sm:h-10 ${card.iconBg} rounded-xl flex items-center justify-center ${card.iconColor}`}
+              >
+                {card.icon}
               </div>
-
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
-                <Link
-                  href={`/dashboard/channels/${channelId}/v1/topics/${topicId}/background-music`}
-                  className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium transition-all shadow-lg shadow-purple-500/25 hover:shadow-xl active:scale-[0.98] text-sm sm:text-base"
-                >
-                  <FaMusic />
-                  <span className="hidden sm:inline">Background Music</span>
-                  <span className="sm:hidden">Music</span>
-                </Link>
-
-                <GenerateStoriesButton topicId={topicId} channelId={channelId} />
-
-                <Link
-                  href={`/dashboard/channels/${channelId}/${channel.channel_type}/topics/${topicId}/stories/new`}
-                  className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium transition-all shadow-lg shadow-amber-500/25 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] text-sm sm:text-base"
-                >
-                  <FaPlus />
-                  <span>New Story</span>
-                </Link>
-              </div>
+              <span className={`w-1 h-6 sm:h-8 rounded-full ${card.accent} opacity-70`} />
             </div>
-
-            {/* Progress Bar */}
-            {stories.length > 0 && (
-              <div className="mt-6 pt-6 border-t border-orange-100/60">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs sm:text-sm text-gray-600">Script Generation Progress</span>
-                  <span className="text-xs sm:text-sm font-medium text-gray-900">{completionRate}%</span>
-                </div>
-                <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-emerald-500 to-green-500 rounded-full transition-all duration-500"
-                    style={{ width: `${completionRate}%` }}
-                  />
-                </div>
-                <p className="text-xs text-gray-500 mt-2">
-                  {scriptedCount} of {stories.length} stories have scripts generated
-                </p>
-              </div>
-            )}
+            <p className="text-[11px] sm:text-[13px] font-medium text-gray-400 mb-1">
+              {card.label}
+            </p>
+            <p
+              className="text-[20px] sm:text-[28px] font-extrabold text-stone-900 leading-none tracking-tight"
+              style={{ fontFamily: "'Syne', sans-serif" }}
+            >
+              {card.value}
+            </p>
+            <p className="text-[11px] text-gray-400 mt-2 flex items-center gap-1">
+              {card.trend}
+            </p>
           </div>
+        ))}
+      </div>
 
-          {/* Stories Section */}
-          <div className="space-y-6">
-            {/* Section Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-sm">
-                  <FaFileAlt className="text-white text-lg" />
-                </div>
-                <div>
-                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Stories</h2>
-                  <p className="text-xs sm:text-sm text-gray-500">Manage your story ideas and scripts</p>
-                </div>
-              </div>
+      {/* ── STORIES SECTION ── */}
+      <div>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+          <div>
+            <p className="text-[12px] font-bold tracking-[0.12em] text-orange-500 uppercase mb-1">
+              Content
+            </p>
+            <h2
+              className="text-[16px] font-bold text-stone-900 tracking-tight"
+              style={{ fontFamily: "'Syne', sans-serif" }}
+            >
+              Stories
+            </h2>
+          </div>
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <GenerateStoriesButton topicId={topicId} channelId={channelId} />
+          </div>
+        </div>
 
-              <div className="flex items-center gap-3">
-                <span className="text-xs sm:text-sm bg-white border border-gray-200 px-3 py-1.5 rounded-full text-gray-600">
-                  {stories.length} total
-                </span>
-              </div>
+        {stories.length === 0 ? (
+          <div className="bg-white rounded-2xl border-2 border-dashed border-orange-200 p-10 text-center">
+            <div className="w-14 h-14 bg-orange-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <FaFileAlt className="text-orange-500 text-xl" />
             </div>
+            <h2
+              className="text-[20px] font-extrabold text-stone-900 tracking-tight mb-2"
+              style={{ fontFamily: "'Syne', sans-serif" }}
+            >
+              No stories yet
+            </h2>
+            <p className="text-[15px] text-stone-400 mb-7 max-w-sm mx-auto">
+              Start writing your script ideas here. Each story can be turned into a full video script with AI assistance.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+              <Link
+                href={`/dashboard/channels/${channelId}/${channel.channel_type}/topics/${topicId}/stories/new`}
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold text-[14px] px-6 py-3 rounded-xl shadow-lg shadow-orange-500/20 hover:opacity-90 hover:-translate-y-px active:translate-y-0 transition-all no-underline"
+              >
+                <FaPlus className="text-xs" />
+                Create First Story
+              </Link>
+              <GenerateStoriesButton topicId={topicId} channelId={channelId} />
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {stories.map((story) => (
+              <div
+                key={story.id}
+                className="group relative bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-[0_8px_24px_rgba(0,0,0,0.07)] hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
+              >
+                {/* Bottom accent bar on hover */}
+                <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-orange-500 to-amber-500 rounded-b-2xl scale-x-0 group-hover:scale-x-100 transition-transform origin-left pointer-events-none" />
 
-            {stories.length === 0 ? (
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl border-2 border-dashed border-amber-200 p-8 sm:p-12 text-center">
-                <div className="max-w-md mx-auto space-y-6">
-                  <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-r from-amber-100 to-orange-100">
-                    <FaFileAlt className="text-3xl text-amber-600" />
-                  </div>
-
-                  <div className="space-y-2">
-                    <h3 className="text-xl font-bold text-gray-900">No stories yet</h3>
-                    <p className="text-sm text-gray-600">
-                      Start writing your script ideas here. Each story can be turned into a full video script with AI assistance.
-                    </p>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <div className="p-5 sm:p-6">
+                  <div className="flex items-start justify-between gap-4">
                     <Link
-                      href={`/dashboard/channels/${channelId}/${channel.channel_type}/topics/${topicId}/stories/new`}
-                      className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-medium transition-all shadow-lg shadow-amber-500/25 hover:shadow-xl"
+                      href={`/dashboard/channels/${channelId}/${channel.channel_type}/topics/${topicId}/stories/${story.id}`}
+                      className="flex-1 min-w-0 no-underline group/link"
                     >
-                      <FaPlus />
-                      Create your first story
+                      <div className="flex items-center gap-2 mb-2">
+                        {story.script_generated && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-100 text-[10px] font-semibold text-emerald-600 flex-shrink-0">
+                            <FaMagic className="text-[8px]" />
+                            AI Ready
+                          </span>
+                        )}
+                        <h3 className="text-[15px] font-bold text-stone-900 group-hover/link:text-orange-600 transition-colors truncate">
+                          {story.title}
+                        </h3>
+                      </div>
+
+                      {story.content && (
+                        <p className="text-[13px] text-stone-400 line-clamp-2 mb-3 leading-snug">
+                          {story.content}
+                        </p>
+                      )}
+
+                      <div className="flex items-center gap-4 text-[12px] text-gray-400">
+                        <span className="flex items-center gap-1.5">
+                          <FaClock className="text-[10px]" />
+                          <span>{formatDate(story.created_at)}</span>
+                        </span>
+                        {story.script_generated && (
+                          <span className="flex items-center gap-1.5 text-emerald-500">
+                            <FaRobot className="text-[10px]" />
+                            <span>Script generated</span>
+                          </span>
+                        )}
+                      </div>
                     </Link>
 
-                    <GenerateStoriesButton topicId={topicId} channelId={channelId} />
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                {stories.map((story) => (
-                  <div
-                    key={story.id}
-                    className="group relative bg-white/90 backdrop-blur-sm rounded-xl border border-gray-200 hover:border-emerald-300 transition-all duration-300 hover:shadow-lg overflow-hidden"
-                  >
-                    {/* Status Badge */}
-                    {story.script_generated && (
-                      <div className="absolute top-3 right-3 z-10">
-                        <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-gradient-to-r from-emerald-100 to-emerald-50 border border-emerald-200 shadow-sm">
-                          <FaMagic className="text-emerald-600 text-[10px]" />
-                          <span className="text-[10px] font-semibold text-emerald-700">AI Ready</span>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Delete Button - Always visible on mobile, hover on desktop */}
-                    <div className="absolute top-3 left-3 z-10 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                    <div className="flex flex-col items-end gap-3 flex-shrink-0">
+                      <FaArrowRight className="text-[12px] text-gray-300 group-hover:text-orange-500 group-hover:translate-x-0.5 transition-all" />
                       <DeleteStoryButton
                         storyId={story.id}
                         topicId={topicId}
@@ -234,56 +273,16 @@ export default async function TopicDetailsPage({ params }) {
                         channelType={channel.channel_type}
                       />
                     </div>
-
-                    {/* Card Content */}
-                    <Link
-                      href={`/dashboard/channels/${channelId}/${channel.channel_type}/topics/${topicId}/stories/${story.id}`}
-                      className="block p-5"
-                    >
-                      <div className="space-y-4">
-                        {/* Title with proper padding for badges */}
-                        <div className="pt-6 sm:pt-2">
-                          <h3 className="text-base sm:text-lg font-semibold text-gray-900 group-hover:text-emerald-600 transition-colors line-clamp-2 pr-16">
-                            {story.title}
-                          </h3>
-                        </div>
-
-                        {/* Preview */}
-                        {story.content && (
-                          <p className="text-xs sm:text-sm text-gray-600 line-clamp-2 leading-relaxed">
-                            {story.content}
-                          </p>
-                        )}
-
-                        {/* AI Generated Indicator */}
-                        {story.script_generated && (
-                          <div className="flex items-center gap-1.5 text-emerald-600 bg-emerald-50/50 px-2 py-1 rounded-lg w-fit">
-                            <FaRobot className="text-[10px]" />
-                            <span className="text-[10px] font-medium">Script generated</span>
-                          </div>
-                        )}
-
-                        {/* Footer */}
-                        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                          <div className="flex items-center gap-2 text-xs text-gray-400">
-                            <FaClock />
-                            <span>{formatDate(story.created_at)}</span>
-                          </div>
-
-                          <span className="text-xs font-medium text-emerald-600 group-hover:text-emerald-700 flex items-center gap-1">
-                            View
-                            <FaChevronRight className="text-[10px] group-hover:translate-x-0.5 transition-transform" />
-                          </span>
-                        </div>
-                      </div>
-                    </Link>
                   </div>
-                ))}
+                </div>
               </div>
-            )}
+            ))}
           </div>
-        </div>
+        )}
       </div>
+
+
+
     </div>
   );
 }

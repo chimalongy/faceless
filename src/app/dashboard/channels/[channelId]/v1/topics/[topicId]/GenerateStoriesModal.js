@@ -1,12 +1,43 @@
+// src/app/dashboard/channels/[channelId]/[channelType]/topics/[topicId]/GenerateStoriesModal.js
 'use client';
 
 import { useState } from 'react';
-import { FaTimes } from 'react-icons/fa';
+import {
+    FaTimes,
+    FaRobot,
+    FaPlus,
+    FaMinus,
+    FaSpinner,
+    FaMobileAlt,
+    FaYoutube,
+    FaInstagram,
+} from 'react-icons/fa';
+
+const platformOptions = [
+    {
+        value: 'tiktok',
+        label: 'TikTok / Reels / Shorts',
+        aspect: '9:16',
+        icon: <FaMobileAlt className="text-sm" />,
+    },
+    {
+        value: 'youtube',
+        label: 'YouTube',
+        aspect: '16:9',
+        icon: <FaYoutube className="text-sm" />,
+    },
+    {
+        value: 'instagram_square',
+        label: 'Instagram Square',
+        aspect: '1:1',
+        icon: <FaInstagram className="text-sm" />,
+    },
+];
 
 export default function GenerateStoriesModal({ isOpen, onClose, topicId, channelId }) {
-    const [storyCount, setStoryCount] = useState(5);
+    const [storyCount, setStoryCount] = useState(1);
     const [socialMediaTarget, setSocialMediaTarget] = useState('tiktok');
-    const [loading, setLoading] = useState(false);
+    const [ loading, setLoading] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -27,7 +58,7 @@ export default function GenerateStoriesModal({ isOpen, onClose, topicId, channel
                     topicId,
                     channelId,
                     storyCount: parseInt(storyCount),
-                    socialMediaTarget
+                    socialMediaTarget,
                 }),
             });
 
@@ -36,7 +67,6 @@ export default function GenerateStoriesModal({ isOpen, onClose, topicId, channel
             if (response.ok) {
                 alert(`✅ Started generating ${storyCount} stories!`);
                 onClose();
-                // Optional: Refresh the page to see new stories
                 window.location.reload();
             } else {
                 alert(`❌ Error: ${data.error || 'Failed to generate stories'}`);
@@ -52,89 +82,172 @@ export default function GenerateStoriesModal({ isOpen, onClose, topicId, channel
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-            <div className="relative w-full max-w-md mx-4">
-                <div className="bg-white rounded-2xl shadow-2xl border border-gray-200">
-                    {/* Header */}
-                    <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                        <h2 className="text-2xl font-bold text-gray-900">
-                            Generate Stories
-                        </h2>
-                        <button
-                            onClick={onClose}
-                            className="text-gray-400 hover:text-gray-600 transition-colors"
-                            disabled={loading}
-                        >
-                            <FaTimes className="text-xl" />
-                        </button>
-                    </div>
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+            onClick={onClose}
+        >
+            <div
+                className="relative bg-white rounded-2xl shadow-2xl border border-gray-100 w-full max-w-sm mx-4 overflow-hidden"
+                onClick={(e) => e.stopPropagation()}
+            >
+                {/* ── HEADER ── */}
+                <div className="px-6 pt-6 pb-4">
+                    <button
+                        onClick={onClose}
+                        disabled={loading}
+                        className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-50 hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                        <FaTimes className="text-xs" />
+                    </button>
 
-                    {/* Content */}
-                    <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-md shadow-orange-500/20">
+                            <FaRobot className="text-white text-sm" />
+                        </div>
                         <div>
-                            <label
-                                htmlFor="storyCount"
-                                className="block text-sm font-medium text-gray-700 mb-2"
-                            >
-                                How many stories do you want to generate?
-                            </label>
-                            <input
-                                type="number"
-                                id="storyCount"
-                                min="1"
-                                max="20"
-                                value={storyCount}
-                                onChange={(e) => setStoryCount(e.target.value)}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
-                                disabled={loading}
-                                required
-                            />
-                            <p className="mt-2 text-sm text-gray-500">
-                                Enter a number between 1 and 20
+                            <p className="text-[12px] font-bold tracking-[0.12em] text-orange-500 uppercase">
+                                AI Generator
                             </p>
-                        </div>
-
-                        <div>
-                            <label
-                                htmlFor="socialMediaTarget"
-                                className="block text-sm font-medium text-gray-700 mb-2"
+                            <h2
+                                className="text-[18px] font-extrabold text-stone-900 tracking-tight"
+                                style={{ fontFamily: "'Syne', sans-serif" }}
                             >
-                                Social Media Target
-                            </label>
-                            <select
-                                id="socialMediaTarget"
-                                value={socialMediaTarget}
-                                onChange={(e) => setSocialMediaTarget(e.target.value)}
-                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all"
-                                disabled={loading}
-                            >
-                                <option value="tiktok">TikTok / Reels / Shorts (9:16)</option>
-                                <option value="youtube">YouTube (16:9)</option>
-                                <option value="instagram_square">Instagram Square (1:1)</option>
-                            </select>
+                                Generate Stories
+                            </h2>
                         </div>
+                    </div>
+                </div>
 
+                {/* ── FORM ── */}
+                <form onSubmit={handleSubmit} className="px-6 pb-6 space-y-6">
+                    {/* Story Count */}
+                    <div className="bg-gray-50/50 rounded-2xl p-5">
+                        <p className="text-[13px] text-stone-400 text-center mb-4">
+                            How many stories should we create?
+                        </p>
 
-                        {/* Actions */}
-                        <div className="flex gap-3">
+                        <div className="flex items-center justify-center gap-4">
                             <button
                                 type="button"
-                                onClick={onClose}
-                                disabled={loading}
-                                className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                onClick={() => setStoryCount((c) => Math.max(1, c - 1))}
+                                disabled={storyCount <= 1 || loading}
+                                className="w-10 h-10 rounded-xl bg-white border border-gray-200 text-stone-600 hover:border-orange-300 hover:text-orange-500 flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-sm"
                             >
-                                Cancel
+                                <FaMinus className="text-xs" />
                             </button>
+
+                            <div className="flex flex-col items-center gap-0.5 min-w-[60px]">
+                                <span
+                                    className="text-[32px] font-extrabold text-stone-900 text-center tabular-nums leading-none"
+                                    style={{ fontFamily: "'Syne', sans-serif" }}
+                                >
+                                    {storyCount}
+                                </span>
+                                <span className="text-[11px] text-gray-400 font-medium">
+                                    story{storyCount !== 1 ? 'ies' : 'y'}
+                                </span>
+                            </div>
+
                             <button
-                                type="submit"
-                                disabled={loading}
-                                className="flex-1 px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-amber-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                type="button"
+                                onClick={() => setStoryCount((c) => Math.min(20, c + 1))}
+                                disabled={storyCount >= 20 || loading}
+                                className="w-10 h-10 rounded-xl bg-white border border-gray-200 text-stone-600 hover:border-orange-300 hover:text-orange-500 flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-sm"
                             >
-                                {loading ? 'Generating...' : 'Proceed'}
+                                <FaPlus className="text-xs" />
                             </button>
                         </div>
-                    </form>
-                </div>
+
+                        <div className="flex items-center justify-center gap-2 mt-4">
+                            {[3, 5, 10, 15].map((n) => (
+                                <button
+                                    key={n}
+                                    type="button"
+                                    onClick={() => setStoryCount(n)}
+                                    disabled={loading}
+                                    className={`px-3 py-2 rounded-xl text-[13px] font-semibold transition-all ${storyCount === n
+                                            ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-md shadow-orange-500/20'
+                                            : 'bg-white text-stone-500 hover:bg-orange-50 hover:text-orange-600 border border-gray-200'
+                                        } disabled:opacity-50`}
+                                >
+                                    {n}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Platform Selection */}
+                    <div className="space-y-2.5">
+                        <label className="block text-[13px] font-semibold text-stone-700 tracking-tight">
+                            Platform
+                        </label>
+                        <div className="space-y-2">
+                            {platformOptions.map((platform) => (
+                                <button
+                                    key={platform.value}
+                                    type="button"
+                                    onClick={() => setSocialMediaTarget(platform.value)}
+                                    disabled={loading}
+                                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all ${socialMediaTarget === platform.value
+                                            ? 'border-orange-300 bg-orange-50 text-orange-700'
+                                            : 'border-gray-200 bg-white text-stone-600 hover:border-gray-300 hover:bg-gray-50'
+                                        } disabled:opacity-50`}
+                                >
+                                    <span
+                                        className={`${socialMediaTarget === platform.value
+                                                ? 'text-orange-500'
+                                                : 'text-gray-400'
+                                            }`}
+                                    >
+                                        {platform.icon}
+                                    </span>
+                                    <div className="flex-1 min-w-0">
+                                        <span className="text-[13px] font-semibold block truncate">
+                                            {platform.label}
+                                        </span>
+                                    </div>
+                                    <span
+                                        className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${socialMediaTarget === platform.value
+                                                ? 'bg-orange-200 text-orange-700'
+                                                : 'bg-gray-100 text-gray-500'
+                                            }`}
+                                    >
+                                        {platform.aspect}
+                                    </span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex gap-3 pt-2">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            disabled={loading}
+                            className="flex-1 px-4 py-3 rounded-xl border border-gray-200 text-stone-500 hover:bg-gray-50 text-[13px] font-semibold transition-all disabled:opacity-50"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="flex-1 inline-flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white text-[13px] font-semibold px-4 py-3 rounded-xl shadow-md shadow-orange-500/20 hover:opacity-90 hover:-translate-y-px active:translate-y-0 transition-all disabled:opacity-60 disabled:hover:translate-y-0"
+                        >
+                            {loading ? (
+                                <>
+                                    <FaSpinner className="animate-spin text-xs" />
+                                    <span>Generating...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <FaRobot className="text-xs" />
+                                    <span>Generate {storyCount}</span>
+                                </>
+                            )}
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     );

@@ -1,50 +1,61 @@
-// app/page.js
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-import { 
-  FaYoutube, 
-  FaMagic, 
-  FaRocket, 
-  FaChartLine, 
-  FaUsers, 
+import {
+  FaYoutube,
+  FaMagic,
+  FaRocket,
+  FaChartLine,
+  FaUsers,
   FaShieldAlt,
   FaCheckCircle,
   FaArrowRight,
-  FaPlayCircle
+  FaPlayCircle,
+  FaBars,
+  FaTimes,
 } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 
 export default function HomePage() {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [stats, setStats] = useState({
-    users: 1250,
-    scriptsGenerated: 5680,
-    channelsCreated: 890,
-    successRate: '95%'
-  });
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [counts, setCounts] = useState({ users: 0, scriptsGenerated: 0, channelsCreated: 0 });
+  const statsRef = useRef(null);
+  const animatedRef = useRef(false);
+
+  const statTargets = { users: 1250, scriptsGenerated: 5680, channelsCreated: 890 };
 
   useEffect(() => {
-    // Animate stats counter
-    const animateCounter = (start, end, duration, setter) => {
-      let startTimestamp = null;
-      const step = (timestamp) => {
-        if (!startTimestamp) startTimestamp = timestamp;
-        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-        const value = Math.floor(progress * (end - start) + start);
-        setter(value);
-        if (progress < 1) {
-          window.requestAnimationFrame(step);
-        }
-      };
-      window.requestAnimationFrame(step);
-    };
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
-    // Only animate on client side
-    animateCounter(0, stats.users, 2000, (val) => setStats(prev => ({ ...prev, users: val })));
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !animatedRef.current) {
+          animatedRef.current = true;
+          Object.entries(statTargets).forEach(([key, end]) => {
+            const startTime = performance.now();
+            const duration = 1800;
+            const step = (now) => {
+              const progress = Math.min((now - startTime) / duration, 1);
+              const ease = 1 - Math.pow(1 - progress, 3);
+              setCounts((prev) => ({ ...prev, [key]: Math.floor(ease * end) }));
+              if (progress < 1) requestAnimationFrame(step);
+            };
+            requestAnimationFrame(step);
+          });
+        }
+      },
+      { threshold: 0.3 }
+    );
+    if (statsRef.current) observer.observe(statsRef.current);
+    return () => observer.disconnect();
   }, []);
 
   const handleNewsletterSubmit = async (e) => {
@@ -53,12 +64,9 @@ export default function HomePage() {
       toast.error('Please enter a valid email address');
       return;
     }
-
     setIsSubmitting(true);
-    
-    // Simulate API call
     setTimeout(() => {
-      toast.success('Successfully subscribed to our newsletter!');
+      toast.success('Successfully subscribed!');
       setEmail('');
       setIsSubmitting(false);
     }, 1500);
@@ -66,212 +74,293 @@ export default function HomePage() {
 
   const features = [
     {
-      icon: <FaMagic className="text-3xl text-orange-600" />,
-      title: 'AI-Powered Script Generation',
-      description: 'Generate engaging YouTube scripts in minutes with our advanced AI that understands your channel\'s voice and style.'
+      icon: <FaMagic />,
+      iconColor: 'text-orange-500',
+      iconBg: 'bg-orange-50',
+      title: 'AI Script Generation',
+      description: "Generate engaging YouTube scripts in minutes with AI that understands your channel's voice and niche.",
     },
     {
-      icon: <FaRocket className="text-3xl text-amber-600" />,
+      icon: <FaRocket />,
+      iconColor: 'text-amber-500',
+      iconBg: 'bg-amber-50',
       title: 'Content Organization',
-      description: 'Organize your content into channels and topics. Keep everything structured for consistent content creation.'
+      description: 'Organize content into channels and topics for a consistent, structured content strategy.',
     },
     {
-      icon: <FaChartLine className="text-3xl text-green-600" />,
+      icon: <FaChartLine />,
+      iconColor: 'text-green-600',
+      iconBg: 'bg-green-50',
       title: 'Performance Analytics',
-      description: 'Track your content performance and get insights on what works best for your faceless channel.'
+      description: 'Track content performance and get insights on what drives growth for your faceless channel.',
     },
     {
-      icon: <FaUsers className="text-3xl text-blue-600" />,
+      icon: <FaUsers />,
+      iconColor: 'text-blue-600',
+      iconBg: 'bg-blue-50',
       title: 'Collaboration Ready',
-      description: 'Work with your team by sharing channels and topics. Perfect for agencies and content teams.'
+      description: 'Share channels and topics with your team. Perfect for agencies and content studios.',
     },
     {
-      icon: <FaShieldAlt className="text-3xl text-red-600" />,
+      icon: <FaShieldAlt />,
+      iconColor: 'text-red-500',
+      iconBg: 'bg-red-50',
       title: 'Secure & Private',
-      description: 'Your content is encrypted and secure. We never share your scripts or ideas with third parties.'
+      description: 'Your scripts and ideas are fully encrypted. We never share your content with third parties.',
     },
     {
-      icon: <FaYoutube className="text-3xl text-red-500" />,
+      icon: <FaYoutube />,
+      iconColor: 'text-red-500',
+      iconBg: 'bg-red-50',
       title: 'YouTube Optimized',
-      description: 'Scripts optimized for YouTube algorithms with proper structure for maximum engagement.'
-    }
+      description: 'Scripts are structured for maximum retention and engagement with YouTube algorithms.',
+    },
   ];
 
-  const howItWorks = [
-    {
-      step: '01',
-      title: 'Create Your Channel',
-      description: 'Set up your YouTube channel profile with name, niche, and description.'
-    },
-    {
-      step: '02',
-      title: 'Organize Topics',
-      description: 'Create topics within your channel to keep your content strategy organized.'
-    },
-    {
-      step: '03',
-      title: 'Write Your Story',
-      description: 'Write or paste your story content. Add images to visualize your script.'
-    },
-    {
-      step: '04',
-      title: 'Generate Script',
-      description: 'Let AI transform your story into a professional YouTube script instantly.'
-    }
+  const steps = [
+    { step: '01', title: 'Create Your Channel', desc: 'Set up your YouTube channel profile with name, niche, and description.' },
+    { step: '02', title: 'Organize Topics', desc: 'Create topics within your channel to keep your content strategy structured.' },
+    { step: '03', title: 'Write Your Story', desc: 'Write or paste your story content. Add images to visualize your script.' },
+    { step: '04', title: 'Generate Script', desc: 'Let AI transform your story into a professional YouTube script instantly.' },
   ];
 
   const testimonials = [
     {
       name: 'Alex Johnson',
-      role: 'Finance YouTube Creator',
-      content: 'FacelessVidStudio helped me scale from 10k to 100k subscribers in 3 months. The script quality is phenomenal!',
-      subscribers: '250K'
+      role: 'Finance Creator',
+      content: 'Scaled from 10k to 100k subscribers in 3 months. The script quality is genuinely phenomenal.',
+      subscribers: '250K',
+      initials: 'AJ',
     },
     {
       name: 'Sarah Miller',
-      role: 'Educational Content Creator',
-      content: 'As a solo creator, this tool saved me 20+ hours per week. The organization features are a game-changer.',
-      subscribers: '150K'
+      role: 'Educational Creator',
+      content: 'As a solo creator, this saved me 20+ hours per week. The organization features changed everything.',
+      subscribers: '150K',
+      initials: 'SM',
     },
     {
       name: 'Mike Chen',
       role: 'Tech Tutorial Creator',
-      content: 'The AI understands exactly what makes a viral tech tutorial. My retention rates improved by 40%.',
-      subscribers: '500K'
-    }
+      content: 'The AI understands exactly what makes viral tech tutorials. My retention improved by 40%.',
+      subscribers: '500K',
+      initials: 'MC',
+    },
+  ];
+
+  const navLinks = [
+    { href: '#features', label: 'Features' },
+    { href: '#how-it-works', label: 'How It Works' },
+    { href: '#testimonials', label: 'Testimonials' },
+    { href: '#pricing', label: 'Pricing' },
   ];
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-md z-50 border-b border-orange-100">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-2">
-              <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-amber-500 rounded-lg flex items-center justify-center">
-                <FaYoutube className="text-white text-xl" />
+    <div className="min-h-screen bg-white font-sans">
+
+      {/* ── NAVIGATION ── */}
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/92 border-b border-gray-100 shadow-sm' : 'bg-white/70 border-b border-transparent'} backdrop-blur-md`}>
+        <div className="max-w-6xl mx-auto px-5">
+          <div className="flex items-center justify-between h-16">
+
+            {/* Logo */}
+            <Link href="/" className="flex items-center gap-2.5 no-underline flex-shrink-0">
+              <div className="w-9 h-9 bg-gradient-to-br from-orange-500 to-amber-500 rounded-[10px] flex items-center justify-center shadow-md shadow-orange-500/20">
+                <FaYoutube className="text-white text-base" />
               </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-amber-500 bg-clip-text text-transparent">
-                FacelessVidStudio
+              <span className="text-[18px] font-bold text-stone-900 tracking-tight" style={{ fontFamily: "'Syne', sans-serif" }}>
+                FacelessVid<span className="text-orange-500">Studio</span>
               </span>
+            </Link>
+
+            {/* Desktop links */}
+            <div className="hidden md:flex items-center gap-8">
+              {navLinks.map((l) => (
+                <a key={l.href} href={l.href} className="text-sm font-medium text-gray-500 hover:text-orange-500 transition-colors no-underline">
+                  {l.label}
+                </a>
+              ))}
             </div>
-            
-            <div className="hidden md:flex items-center space-x-8">
-              <a href="#features" className="text-gray-600 hover:text-orange-600 transition-colors font-medium">Features</a>
-              <a href="#how-it-works" className="text-gray-600 hover:text-orange-600 transition-colors font-medium">How It Works</a>
-              <a href="#testimonials" className="text-gray-600 hover:text-orange-600 transition-colors font-medium">Testimonials</a>
-              <a href="#pricing" className="text-gray-600 hover:text-orange-600 transition-colors font-medium">Pricing</a>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <Link 
-                href="/login" 
-                className="text-orange-600 hover:text-orange-700 font-medium px-4 py-2 transition-colors"
-              >
+
+            {/* Desktop CTA */}
+            <div className="hidden md:flex items-center gap-3">
+              <Link href="/login" className="text-sm font-semibold text-orange-500 hover:text-orange-600 transition-colors no-underline px-2">
                 Sign In
               </Link>
-              <Link 
+              <Link href="/register" className="bg-gradient-to-r from-orange-500 to-amber-500 text-white text-sm font-semibold px-5 py-2.5 rounded-[10px] shadow-md shadow-orange-500/20 hover:opacity-90 hover:-translate-y-px active:translate-y-0 transition-all no-underline">
+                Get Started Free
+              </Link>
+            </div>
+
+            {/* Mobile hamburger */}
+            <button
+              className="md:hidden flex items-center justify-center p-2 rounded-lg text-stone-700 hover:bg-gray-100 transition-colors"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Toggle menu"
+            >
+              {mobileMenuOpen ? <FaTimes className="text-xl" /> : <FaBars className="text-xl" />}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile dropdown */}
+        <div className={`md:hidden absolute top-full left-0 right-0 bg-white border-b border-gray-100 shadow-lg transition-all duration-200 ${mobileMenuOpen ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 -translate-y-2 pointer-events-none'}`}>
+          <div className="px-5 py-3">
+            {navLinks.map((l) => (
+              <a
+                key={l.href}
+                href={l.href}
+                className="block py-3 text-[15px] font-medium text-stone-700 border-b border-gray-50 last:border-0 no-underline hover:text-orange-500 transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                {l.label}
+              </a>
+            ))}
+            <div className="flex flex-col gap-3 pt-4 pb-2">
+              <Link
                 href="/register"
-                className="bg-gradient-to-r from-orange-500 to-amber-500 text-white px-6 py-2 rounded-lg font-medium hover:shadow-lg hover:shadow-orange-500/25 transition-all hover:scale-105"
+                className="w-full flex items-center justify-center bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold text-[15px] py-3 rounded-xl shadow-md shadow-orange-500/20 no-underline"
+                onClick={() => setMobileMenuOpen(false)}
               >
                 Get Started Free
+              </Link>
+              <Link
+                href="/login"
+                className="text-center text-[14px] font-semibold text-orange-500 py-2 no-underline"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Sign In
               </Link>
             </div>
           </div>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4 bg-orange-50/30">
-        <div className="container mx-auto">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 text-gray-900">
-              Create <span className="bg-gradient-to-r from-orange-600 to-amber-500 bg-clip-text text-transparent">Faceless</span> YouTube Content That Converts
-            </h1>
-            <p className="text-xl text-gray-600 mb-10 max-w-3xl mx-auto">
-              The all-in-one platform for organizing, creating, and generating scripts for successful faceless YouTube channels. 
-              No camera needed, just great content.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-              <Link 
-                href="/register"
-                className="bg-gradient-to-r from-orange-500 to-amber-500 text-white px-8 py-4 rounded-xl font-bold text-lg hover:shadow-xl hover:shadow-orange-500/20 transition-all hover:scale-105 flex items-center justify-center gap-2"
-              >
-                Start Creating Free
-                <FaArrowRight />
-              </Link>
-              <button className="border-2 border-gray-200 text-gray-700 px-8 py-4 rounded-xl font-bold text-lg hover:border-orange-500 hover:text-orange-600 transition-all flex items-center justify-center gap-2 bg-white">
-                <FaPlayCircle />
-                Watch Demo
-              </button>
-            </div>
+      {/* ── HERO ── */}
+      <section className="pt-28 pb-20 px-5 bg-stone-50/60 relative overflow-hidden">
+        {/* Background blobs */}
+        <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] rounded-full bg-orange-400/8 blur-3xl -translate-y-1/2" />
+        <div className="pointer-events-none absolute top-20 right-0 w-[400px] h-[400px] rounded-full bg-amber-400/6 blur-3xl" />
 
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-3xl mx-auto">
-              {Object.entries(stats).map(([key, value]) => (
-                <div key={key} className="text-center">
-                  <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-                    {typeof value === 'number' ? value.toLocaleString() : value}
-                  </div>
-                  <div className="text-gray-600 capitalize">
-                    {key.replace(/([A-Z])/g, ' $1')}
-                  </div>
-                </div>
-              ))}
-            </div>
+        <div className="max-w-4xl mx-auto text-center relative">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-1.5 bg-orange-500/10 border border-orange-500/20 text-orange-600 text-[13px] font-semibold px-4 py-1.5 rounded-full mb-7">
+            <FaYoutube className="text-[13px]" />
+            The #1 Faceless YouTube Platform
           </div>
-        </div>
-      </section>
 
-      {/* Features Section */}
-      <section id="features" className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4 text-gray-900">Everything You Need for Faceless Success</h2>
-            <p className="text-gray-600 text-xl max-w-2xl mx-auto">
-              Specialized tools designed specifically for faceless YouTube creators
-            </p>
+          <h1
+            className="text-[clamp(2.6rem,6vw,4.8rem)] font-extrabold text-stone-900 leading-[1.08] tracking-tight mb-6"
+            style={{ fontFamily: "'Syne', sans-serif" }}
+          >
+            Build Faceless Channels<br />
+            That{' '}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-amber-500">
+              Actually Convert
+            </span>
+          </h1>
+
+          <p className="text-[clamp(16px,2.5vw,19px)] text-stone-500 max-w-[580px] mx-auto leading-relaxed mb-10">
+            Organize, write, and AI-generate scripts for successful faceless YouTube channels — no camera, no face, just compelling content.
+          </p>
+
+          <div className="flex flex-wrap gap-3 justify-center mb-16">
+            <Link
+              href="/register"
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-[16px] px-8 py-4 rounded-xl shadow-xl shadow-orange-500/20 hover:opacity-92 hover:-translate-y-px active:translate-y-0 transition-all no-underline"
+            >
+              Start Creating Free <FaArrowRight className="text-sm" />
+            </Link>
+            <button className="inline-flex items-center gap-2 bg-white text-stone-700 font-bold text-[16px] px-8 py-4 rounded-xl border-[1.5px] border-gray-200 hover:border-orange-500 hover:text-orange-500 transition-all">
+              <FaPlayCircle /> Watch Demo
+            </button>
           </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {features.map((feature, index) => (
-              <div 
-                key={index} 
-                className="bg-white p-8 rounded-2xl shadow-lg border border-orange-50 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 group"
-              >
-                <div className="mb-6 bg-orange-50 w-16 h-16 rounded-xl flex items-center justify-center group-hover:bg-orange-100 transition-colors">
-                  {feature.icon}
+
+          {/* Stats pill */}
+          <div
+            ref={statsRef}
+            className="inline-flex flex-wrap justify-center bg-white border border-gray-100 rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.06)] py-5 px-2"
+          >
+            {[
+              { val: counts.users.toLocaleString(), label: 'Active Users' },
+              { val: counts.scriptsGenerated.toLocaleString(), label: 'Scripts Generated' },
+              { val: counts.channelsCreated.toLocaleString(), label: 'Channels Created' },
+              { val: '95%', label: 'Success Rate' },
+            ].map((s, i, arr) => (
+              <div key={i} className="flex items-center">
+                <div className="px-7 text-center min-w-[110px]">
+                  <div className="text-[26px] font-extrabold text-stone-900 tracking-tight" style={{ fontFamily: "'Syne', sans-serif" }}>
+                    {s.val}
+                  </div>
+                  <div className="text-[12px] text-gray-400 font-medium mt-0.5">{s.label}</div>
                 </div>
-                <h3 className="text-2xl font-bold mb-4 text-gray-900">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
+                {i < arr.length - 1 && (
+                  <div className="w-px self-stretch bg-gradient-to-b from-transparent via-gray-200 to-transparent" />
+                )}
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* How It Works Section */}
-      <section id="how-it-works" className="py-20 bg-orange-50/50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4 text-gray-900">How FacelessVidStudio Works</h2>
-            <p className="text-gray-600 text-xl max-w-2xl mx-auto">
-              Four simple steps from idea to published content
+      {/* ── FEATURES ── */}
+      <section id="features" className="py-24 bg-white px-5">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-14">
+            <p className="text-[12px] font-bold tracking-[0.12em] text-orange-500 uppercase mb-3">Features</p>
+            <h2
+              className="text-[clamp(1.8rem,4vw,2.6rem)] font-extrabold text-stone-900 tracking-tight mb-4"
+              style={{ fontFamily: "'Syne', sans-serif" }}
+            >
+              Everything for Faceless Success
+            </h2>
+            <p className="text-[17px] text-stone-500 max-w-[480px] mx-auto">
+              Specialized tools built specifically for faceless YouTube creators
             </p>
           </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
-            {howItWorks.map((step, index) => (
-              <div key={index} className="relative">
-                <div className="bg-white p-8 rounded-2xl h-full shadow-sm border border-orange-100/50 hover:shadow-md transition-all">
-                  <div className="text-6xl font-bold text-orange-100 mb-4">{step.step}</div>
-                  <h3 className="text-xl font-bold mb-3 text-gray-900">{step.title}</h3>
-                  <p className="text-gray-600">{step.description}</p>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {features.map((f, i) => (
+              <div key={i} className="bg-white rounded-2xl p-7 border border-gray-100 hover:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-250">
+                <div className={`w-12 h-12 ${f.iconBg} rounded-xl flex items-center justify-center mb-5`}>
+                  <span className={`${f.iconColor} text-xl`}>{f.icon}</span>
                 </div>
-                {index < howItWorks.length - 1 && (
-                  <div className="hidden lg:block absolute top-1/2 right-0 transform translate-x-1/2 -translate-y-1/2 z-10">
-                    <div className="w-12 h-1 bg-gradient-to-r from-orange-200 to-amber-200"></div>
+                <h3 className="text-[17px] font-bold text-stone-900 mb-2">{f.title}</h3>
+                <p className="text-[14px] text-stone-500 leading-relaxed">{f.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── HOW IT WORKS ── */}
+      <section id="how-it-works" className="py-24 bg-stone-50/70 px-5">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-14">
+            <p className="text-[12px] font-bold tracking-[0.12em] text-orange-500 uppercase mb-3">Process</p>
+            <h2
+              className="text-[clamp(1.8rem,4vw,2.6rem)] font-extrabold text-stone-900 tracking-tight mb-4"
+              style={{ fontFamily: "'Syne', sans-serif" }}
+            >
+              Four Steps to Great Content
+            </h2>
+            <p className="text-[17px] text-stone-500 max-w-[440px] mx-auto">From idea to published script in minutes</p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
+            {steps.map((s, i) => (
+              <div key={i} className="relative bg-white rounded-2xl p-7 border border-gray-100 hover:shadow-md transition-all">
+                <div
+                  className="text-[72px] font-extrabold leading-none mb-2 bg-gradient-to-br from-orange-200 to-amber-200 bg-clip-text text-transparent"
+                  style={{ fontFamily: "'Syne', sans-serif" }}
+                >
+                  {s.step}
+                </div>
+                <h3 className="text-[16px] font-bold text-stone-900 mb-2">{s.title}</h3>
+                <p className="text-[14px] text-stone-500 leading-relaxed">{s.desc}</p>
+                {i < steps.length - 1 && (
+                  <div className="hidden lg:flex absolute right-0 top-1/2 translate-x-1/2 -translate-y-1/2 z-10 w-5 h-5 bg-gray-100 rounded-full items-center justify-center">
+                    <FaArrowRight className="text-[8px] text-gray-400" />
                   </div>
                 )}
               </div>
@@ -280,36 +369,38 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section id="testimonials" className="py-20 bg-gradient-to-r from-orange-500 to-amber-500 text-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">Trusted by Successful Creators</h2>
-            <p className="text-orange-100 text-xl max-w-2xl mx-auto">
-              Join thousands of creators who transformed their channels
-            </p>
+      {/* ── TESTIMONIALS ── */}
+      <section id="testimonials" className="py-24 bg-stone-900 px-5">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-14">
+            <p className="text-[12px] font-bold tracking-[0.12em] text-orange-500 uppercase mb-3">Testimonials</p>
+            <h2
+              className="text-[clamp(1.8rem,4vw,2.6rem)] font-extrabold text-white tracking-tight mb-4"
+              style={{ fontFamily: "'Syne', sans-serif" }}
+            >
+              Trusted by Top Creators
+            </h2>
+            <p className="text-[17px] text-stone-400 max-w-[440px] mx-auto">Thousands of creators building successful channels</p>
           </div>
-          
-          <div className="grid md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <div key={index} className="bg-white p-8 rounded-2xl shadow-xl text-gray-900">
-                <div className="flex items-center mb-6">
-                  <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-amber-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
-                    {testimonial.name.charAt(0)}
+
+          <div className="grid md:grid-cols-3 gap-5">
+            {testimonials.map((t, i) => (
+              <div key={i} className="bg-white rounded-2xl p-7 shadow-xl">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-11 h-11 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center text-white font-bold text-[13px] flex-shrink-0">
+                    {t.initials}
                   </div>
-                  <div className="ml-4">
-                    <div className="font-bold">{testimonial.name}</div>
-                    <div className="text-gray-500 text-sm">{testimonial.role}</div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-stone-900">{t.name}</p>
+                    <p className="text-[12px] text-gray-400">{t.role}</p>
                   </div>
-                  <div className="ml-auto bg-green-50 text-green-700 px-3 py-1 rounded-full text-sm font-bold border border-green-100">
-                    {testimonial.subscribers} Subs
+                  <div className="bg-green-50 text-green-700 text-[12px] font-bold px-3 py-1 rounded-full border border-green-100 flex-shrink-0">
+                    {t.subscribers}
                   </div>
                 </div>
-                <p className="text-gray-700 italic mb-4">"{testimonial.content}"</p>
-                <div className="flex text-amber-400">
-                  {[...Array(5)].map((_, i) => (
-                    <FaCheckCircle key={i} />
-                  ))}
+                <p className="text-[14px] text-gray-600 leading-relaxed italic mb-4">"{t.content}"</p>
+                <div className="flex gap-1">
+                  {[...Array(5)].map((_, j) => <span key={j} className="text-amber-400 text-[13px]">★</span>)}
                 </div>
               </div>
             ))}
@@ -317,123 +408,117 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto bg-white rounded-3xl p-12 text-center shadow-2xl border border-orange-100">
-            <h2 className="text-4xl font-bold mb-6 text-gray-900">Start Your Faceless YouTube Journey Today</h2>
-            <p className="text-xl mb-8 text-gray-600">
-              Join thousands of creators who are building successful channels without showing their face
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
-              <Link 
-                href="/register"
-                className="bg-orange-600 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-orange-700 transition-all shadow-lg shadow-orange-500/25"
+      {/* ── CTA ── */}
+      <section className="py-20 px-5">
+        <div className="max-w-[860px] mx-auto">
+          <div className="relative bg-gradient-to-br from-stone-900 to-stone-800 rounded-3xl p-12 sm:p-16 overflow-hidden text-center">
+            {/* Glow blobs */}
+            <div className="pointer-events-none absolute -top-16 -right-16 w-[300px] h-[300px] rounded-full bg-orange-500/15 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-20 -left-10 w-[250px] h-[250px] rounded-full bg-amber-500/10 blur-3xl" />
+
+            <div className="relative z-10">
+              <h2
+                className="text-[clamp(1.8rem,4vw,2.8rem)] font-extrabold text-white tracking-tight mb-4"
+                style={{ fontFamily: "'Syne', sans-serif" }}
               >
-                Get Started Free
-              </Link>
-              <button className="border-2 border-gray-200 text-gray-700 px-8 py-4 rounded-xl font-bold text-lg hover:border-orange-500 hover:text-orange-600 transition-all hover:bg-orange-50">
-                Schedule a Demo
-              </button>
-            </div>
-            
-            <div className="mt-8 grid grid-cols-3 gap-8 text-center text-gray-600">
-              <div>
-                <div className="text-2xl font-bold text-orange-600">30-Day</div>
-                <div className="opacity-90">Free Trial</div>
+                Start Your Faceless Journey
+              </h2>
+              <p className="text-[17px] text-stone-400 max-w-[460px] mx-auto mb-9">
+                Join thousands building successful channels without ever showing their face.
+              </p>
+
+              <div className="flex flex-wrap gap-3 justify-center mb-10">
+                <Link
+                  href="/register"
+                  className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-bold text-[16px] px-8 py-4 rounded-xl shadow-xl shadow-orange-500/20 hover:opacity-92 hover:-translate-y-px transition-all no-underline"
+                >
+                  Get Started Free <FaArrowRight className="text-sm" />
+                </Link>
+                <button className="inline-flex items-center gap-2 bg-white/8 border border-white/15 text-white font-semibold text-[16px] px-8 py-4 rounded-xl hover:bg-white/14 transition-all">
+                  Schedule a Demo
+                </button>
               </div>
-              <div>
-                <div className="text-2xl font-bold text-orange-600">No Credit Card</div>
-                <div className="opacity-90">Required</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-orange-600">Cancel</div>
-                <div className="opacity-90">Anytime</div>
+
+              <div className="flex flex-wrap justify-center gap-10">
+                {[['30-Day', 'Free Trial'], ['No Credit Card', 'Required'], ['Cancel', 'Anytime']].map(([top, sub]) => (
+                  <div key={top} className="text-center">
+                    <p className="text-[15px] font-bold text-orange-500">{top}</p>
+                    <p className="text-[13px] text-stone-500">{sub}</p>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Newsletter Section */}
-      <section className="py-12 bg-gray-50 border-t border-gray-200">
-        <div className="container mx-auto px-4">
-          <div className="max-w-2xl mx-auto text-center">
-            <h3 className="text-2xl font-bold mb-4 text-gray-900">Stay Updated</h3>
-            <p className="text-gray-600 mb-6">
-              Get tips, tutorials, and updates on faceless content creation
-            </p>
-            <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-4">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email address"
-                className="flex-1 px-6 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white"
-                required
-              />
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="bg-gray-900 text-white px-8 py-3 rounded-lg font-medium hover:bg-gray-800 transition-all disabled:opacity-50"
-              >
-                {isSubmitting ? 'Subscribing...' : 'Subscribe'}
-              </button>
-            </form>
-          </div>
+      {/* ── NEWSLETTER ── */}
+      <section className="py-14 px-5 bg-stone-50 border-t border-gray-100">
+        <div className="max-w-[520px] mx-auto text-center">
+          <h3 className="text-[22px] font-bold text-stone-900 mb-2" style={{ fontFamily: "'Syne', sans-serif" }}>
+            Stay Updated
+          </h3>
+          <p className="text-[15px] text-stone-500 mb-6">Tips, tutorials, and updates on faceless content creation</p>
+          <form onSubmit={handleNewsletterSubmit} className="flex flex-wrap gap-2.5">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your email address"
+              required
+              className="flex-1 min-w-[200px] px-5 py-3 rounded-xl border border-gray-200 text-[15px] text-stone-900 placeholder-gray-300 bg-white outline-none focus:border-orange-500 focus:ring-[3px] focus:ring-orange-500/12 transition-all"
+            />
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="flex-shrink-0 bg-stone-900 hover:bg-stone-800 disabled:opacity-60 text-white font-semibold text-[15px] px-6 py-3 rounded-xl transition-all"
+            >
+              {isSubmitting ? 'Subscribing…' : 'Subscribe'}
+            </button>
+          </form>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-white text-gray-900 py-12 border-t border-gray-200">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-8">
+      {/* ── FOOTER ── */}
+      <footer className="bg-white border-t border-gray-100 px-5 pt-14 pb-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-4 gap-10 mb-12">
             <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-amber-500 rounded-lg flex items-center justify-center">
-                  <FaYoutube className="text-white text-xl" />
+              <div className="flex items-center gap-2.5 mb-4">
+                <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-amber-500 rounded-[9px] flex items-center justify-center">
+                  <FaYoutube className="text-white text-sm" />
                 </div>
-                <span className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-amber-500 bg-clip-text text-transparent">FacelessVidStudio</span>
+                <span className="text-[16px] font-bold text-stone-900" style={{ fontFamily: "'Syne', sans-serif" }}>
+                  FacelessVid<span className="text-orange-500">Studio</span>
+                </span>
               </div>
-              <p className="text-gray-500">
-                The ultimate platform for faceless YouTube content creation and script generation.
+              <p className="text-[14px] text-gray-400 leading-relaxed">
+                The platform for faceless YouTube content creation and script generation.
               </p>
             </div>
-            
-            <div>
-              <h4 className="text-lg font-bold mb-4">Product</h4>
-              <ul className="space-y-2 text-gray-500">
-                <li><a href="#features" className="hover:text-orange-600 transition-colors">Features</a></li>
-                <li><a href="#how-it-works" className="hover:text-orange-600 transition-colors">How It Works</a></li>
-                <li><Link href="/pricing" className="hover:text-orange-600 transition-colors">Pricing</Link></li>
-                <li><a href="#" className="hover:text-orange-600 transition-colors">API</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="text-lg font-bold mb-4">Company</h4>
-              <ul className="space-y-2 text-gray-500">
-                <li><a href="#" className="hover:text-orange-600 transition-colors">About</a></li>
-                <li><a href="#" className="hover:text-orange-600 transition-colors">Blog</a></li>
-                <li><a href="#" className="hover:text-orange-600 transition-colors">Careers</a></li>
-                <li><a href="#" className="hover:text-orange-600 transition-colors">Contact</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="text-lg font-bold mb-4">Legal</h4>
-              <ul className="space-y-2 text-gray-500">
-                <li><a href="#" className="hover:text-orange-600 transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-orange-600 transition-colors">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-orange-600 transition-colors">Cookie Policy</a></li>
-                <li><a href="#" className="hover:text-orange-600 transition-colors">GDPR</a></li>
-              </ul>
-            </div>
+
+            {[
+              { heading: 'Product', links: [['#features', 'Features'], ['#how-it-works', 'How It Works'], ['/pricing', 'Pricing'], ['#', 'API']] },
+              { heading: 'Company', links: [['#', 'About'], ['#', 'Blog'], ['#', 'Careers'], ['#', 'Contact']] },
+              { heading: 'Legal', links: [['#', 'Privacy Policy'], ['#', 'Terms of Service'], ['#', 'Cookie Policy'], ['#', 'GDPR']] },
+            ].map((col) => (
+              <div key={col.heading}>
+                <h4 className="text-[13px] font-bold text-stone-900 uppercase tracking-wider mb-4">{col.heading}</h4>
+                <ul className="space-y-2.5">
+                  {col.links.map(([href, label]) => (
+                    <li key={label}>
+                      <a href={href} className="text-[14px] text-gray-400 hover:text-orange-500 transition-colors no-underline">
+                        {label}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
-          
-          <div className="border-t border-gray-100 mt-8 pt-8 text-center text-gray-500">
-            <p>&copy; {new Date().getFullYear()} FacelessVidStudio. All rights reserved.</p>
+
+          <div className="border-t border-gray-100 pt-6 text-center">
+            <p className="text-[13px] text-gray-300">© {new Date().getFullYear()} FacelessVidStudio. All rights reserved.</p>
           </div>
         </div>
       </footer>

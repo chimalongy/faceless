@@ -5,7 +5,6 @@ import { useRef, forwardRef, useImperativeHandle } from 'react';
 const SceneAudioPlayer = forwardRef(({ audioUrl, mimeType }, ref) => {
   const audioRef = useRef(null);
 
-  // Expose play/pause methods to parent
   useImperativeHandle(ref, () => ({
     play: () => {
       if (audioRef.current && audioUrl) {
@@ -35,7 +34,6 @@ const SceneAudioPlayer = forwardRef(({ audioUrl, mimeType }, ref) => {
     }
   }));
 
-  // Don't render if no audio URL
   if (!audioUrl) {
     console.warn('SceneAudioPlayer: No audioUrl provided');
     return null;
@@ -46,7 +44,7 @@ const SceneAudioPlayer = forwardRef(({ audioUrl, mimeType }, ref) => {
       <audio
         ref={audioRef}
         controls
-        className="h-10 w-full max-w-[250px]"
+        className="h-9 w-full max-w-[220px] rounded-lg"
         preload="metadata"
         src={audioUrl}
         onError={(e) => {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { FaVideo, FaPlay } from 'react-icons/fa';
+import { FaPlay } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 
@@ -43,49 +43,36 @@ export default function MergeVideosButton({ storyId, isEnabled }) {
     };
 
     return (
-        <div className="mt-8 pt-8 border-t border-gray-100">
+        <div className="text-center">
             <button
                 type="button"
                 onClick={handleMerge}
                 disabled={loading || !isEnabled}
-                className={`group relative overflow-hidden inline-flex items-center justify-center gap-3 w-full px-8 py-4 text-white font-bold rounded-2xl transition-all shadow-lg hover:shadow-xl active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:grayscale disabled:scale-100
+                className={`group relative overflow-hidden inline-flex items-center justify-center gap-2 w-full px-6 py-3.5 font-bold rounded-xl transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:grayscale disabled:scale-100 text-sm
                     ${isEnabled
-                        ? 'bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 hover:shadow-violet-500/25'
-                        : 'bg-gray-400'
+                        ? 'bg-gradient-to-r from-violet-600 via-purple-600 to-indigo-600 text-white shadow-md shadow-violet-500/20 hover:opacity-90 hover:-translate-y-px'
+                        : 'bg-gray-200 text-gray-400'
                     }`}
             >
-                {/* Decorative glow effect */}
-                {isEnabled && !loading && (
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-[shimmer_2s_infinite] pointer-events-none" />
+                {loading ? (
+                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                    <FaPlay className="text-sm" />
                 )}
-
-                <div className="flex items-center gap-3">
-                    {loading ? (
-                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    ) : (
-                        <FaPlay className="text-lg group-hover:scale-110 transition-transform" />
-                    )}
-                    <span className="text-lg">
-                        {loading ? 'Processing Merge...' : 'Merge All Scene Videos'}
-                    </span>
-                </div>
+                <span>
+                    {loading ? 'Processing Merge...' : 'Merge All Scene Videos'}
+                </span>
 
                 {!isEnabled && !loading && (
-                    <div className="absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-1 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none after:content-[''] after:absolute after:top-full after:left-1/2 after:-translate-x-1/2 after:border-4 after:border-transparent after:border-t-gray-800">
+                    <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-3 py-1 bg-stone-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
                         Generate all scene videos first
                     </div>
                 )}
             </button>
 
-            <p className="mt-4 text-center text-sm text-gray-500 font-medium">
+            <p className="mt-3 text-center text-xs text-stone-400 font-medium">
                 Combine all generated scenes into a single high-quality video file
             </p>
-
-            <style jsx>{`
-                @keyframes shimmer {
-                    100% { transform: translateX(100%); }
-                }
-            `}</style>
         </div>
     );
 }

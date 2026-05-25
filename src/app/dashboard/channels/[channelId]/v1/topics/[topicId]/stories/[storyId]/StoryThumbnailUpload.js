@@ -160,60 +160,98 @@ export default function StoryThumbnailUpload({ channelId, topicId, storyId, init
     <div className="space-y-4">
       {/* Current Thumbnail Display */}
       {initialThumbnailUrl ? (
-        <div className="relative group">
-          <div className="aspect-video rounded-xl overflow-hidden border-2 border-cyan-200 shadow-lg">
-            <img
-              src={initialThumbnailUrl}
-              alt={`Thumbnail for ${storyTitle}`}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-            />
-          </div>
-          <div className={`absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent ${isUploading ? 'opacity-100 backdrop-blur-sm' : 'opacity-0 group-hover:opacity-100'} transition-all duration-300 rounded-xl`}>
-            <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between gap-2">
-              <label 
-                htmlFor="thumbnail-upload" 
-                className="inline-flex items-center gap-2 px-4 py-2 bg-white/90 hover:bg-white text-gray-800 rounded-lg text-sm font-medium transition-all cursor-pointer"
-              >
-                {isUploading ? (
-                  <>
-                    <FaSpinner className="animate-spin text-cyan-600" />
-                    <span>Processing...</span>
-                  </>
-                ) : (
-                  <>
-                    <FaCamera className="text-cyan-600" />
-                    <span>Change Thumbnail</span>
-                  </>
-                )}
-              </label>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleDownload}
-                  disabled={isUploading || isGenerating}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-white/90 hover:bg-white text-gray-800 rounded-lg text-sm font-medium transition-all disabled:opacity-50"
-                  title="Download thumbnail"
-                >
-                  <FaDownload className="text-cyan-600" />
-                  <span>Download</span>
-                </button>
-                <button 
-                  onClick={handleRemove}
-                  disabled={isUploading}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-red-500/90 hover:bg-red-600 text-white rounded-lg text-sm font-medium transition-all disabled:opacity-50"
-                >
-                  <FaTrashAlt />
-                  <span>Remove</span>
-                </button>
-              </div>
+        <div className="space-y-3">
+          <div className="relative group">
+            <div className="aspect-video rounded-xl overflow-hidden border-2 border-cyan-200 shadow-lg">
+              <img
+                src={initialThumbnailUrl}
+                alt={`Thumbnail for ${storyTitle}`}
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
             </div>
-            {/* Absolute center Generate button for when thumbnail exists */}
-            <button
+            <div className={`absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent ${isUploading ? 'opacity-100 backdrop-blur-sm' : 'opacity-0 group-hover:opacity-100'} transition-all duration-300 rounded-xl`}>
+              <div className="absolute bottom-4 left-4 right-4 hidden sm:flex items-center justify-between gap-2">
+                <label 
+                  htmlFor="thumbnail-upload" 
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-white/90 hover:bg-white text-gray-800 rounded-lg text-sm font-medium transition-all cursor-pointer"
+                >
+                  {isUploading ? (
+                    <>
+                      <FaSpinner className="animate-spin text-cyan-600" />
+                      <span>Processing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <FaCamera className="text-cyan-600" />
+                      <span>Change</span>
+                    </>
+                  )}
+                </label>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleDownload}
+                    disabled={isUploading || isGenerating}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-white/90 hover:bg-white text-gray-800 rounded-lg text-sm font-medium transition-all disabled:opacity-50"
+                    title="Download thumbnail"
+                  >
+                    <FaDownload className="text-cyan-600" />
+                    <span>Download</span>
+                  </button>
+                </div>
+              </div>
+              {/* AI Generate button — desktop hover overlay */}
+              <button
+                type="button"
                 onClick={handleGenerate}
                 disabled={isUploading || isGenerating}
                 className={`absolute top-4 right-4 p-2.5 rounded-full bg-white/90 hover:bg-white text-cyan-600 shadow-lg hover:shadow-cyan-500/20 transition-all ${isUploading || isGenerating ? 'opacity-0 scale-90' : 'opacity-0 group-hover:opacity-100 scale-100'} cursor-pointer`}
                 title="AI Generate Thumbnail"
-            >
+              >
                 <FaMagic className={isGenerating ? 'animate-spin' : ''} />
+              </button>
+            </div>
+          </div>
+
+          {/* Persistent action buttons — always visible, works on mobile */}
+          <div className="flex flex-wrap items-center gap-2">
+            <label
+              htmlFor="thumbnail-upload"
+              className={`flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-stone-700 rounded-xl text-sm font-medium hover:border-cyan-300 hover:bg-cyan-50 hover:text-cyan-700 transition-all cursor-pointer ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
+            >
+              {isUploading ? (
+                <>
+                  <FaSpinner className="animate-spin text-cyan-600" />
+                  <span>Processing…</span>
+                </>
+              ) : (
+                <>
+                  <FaCamera className="text-cyan-600" />
+                  <span>Change</span>
+                </>
+              )}
+            </label>
+            <button
+              type="button"
+              onClick={handleDownload}
+              disabled={isUploading || isGenerating}
+              className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-200 text-stone-700 rounded-xl text-sm font-medium hover:border-cyan-300 hover:bg-cyan-50 hover:text-cyan-700 transition-all disabled:opacity-50"
+            >
+              <FaDownload className="text-cyan-600" />
+              <span>Download</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleRemove}
+              disabled={isUploading}
+              className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm font-semibold hover:bg-red-500 hover:text-white hover:border-red-500 transition-all disabled:opacity-50"
+            >
+              {isUploading ? (
+                <FaSpinner className="animate-spin" />
+              ) : (
+                <FaTrashAlt />
+              )}
+              <span>Remove</span>
             </button>
           </div>
         </div>

@@ -1,23 +1,29 @@
 @import "tailwindcss";
 
+
 :root {
   /* Light Theme Base */
   --background: #ffffff;
   --foreground: #171717;
-  
+
   /* Accent Colors - Orange/Warm Theme */
-  --primary: #f97316; /* Orange 500 */
-  --primary-hover: #ea580c; /* Orange 600 */
-  --secondary: #f59e0b; /* Amber 500 */
-  
+  --primary: #f97316;
+  /* Orange 500 */
+  --primary-hover: #ea580c;
+  /* Orange 600 */
+  --secondary: #f59e0b;
+  /* Amber 500 */
+
   /* Surface Colors */
   --surface: #ffffff;
-  --surface-hover: #fff7ed; /* Orange 50 */
+  --surface-hover: #fff7ed;
+  /* Orange 50 */
   --border: #e5e5e5;
-  
+
   --foreground-rgb: 23, 23, 23;
   --background-start-rgb: 255, 255, 255;
-  --background-end-rgb: 255, 247, 237; /* Fade to very light orange */
+  --background-end-rgb: 255, 247, 237;
+  /* Fade to very light orange */
 }
 
 @theme inline {
@@ -29,7 +35,7 @@
   --color-surface: var(--surface);
   --color-surface-hover: var(--surface-hover);
   --color-border: var(--border);
-  
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -43,11 +49,9 @@ body {
   -moz-osx-font-smoothing: grayscale;
 
   /* Subtle gradient background */
-  background: linear-gradient(
-      to bottom,
+  background: linear-gradient(to bottom,
       rgb(var(--background-start-rgb)),
-      rgb(var(--background-end-rgb))
-    );
+      rgb(var(--background-end-rgb)));
   min-height: 100vh;
 }
 
@@ -69,9 +73,12 @@ body {
 
 /* Custom animations */
 @keyframes float {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0px);
   }
+
   50% {
     transform: translateY(-10px);
   }
@@ -102,4 +109,22 @@ html {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #fed7aa;
+  border-radius: 20px;
+}
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #fed7aa transparent;
 }

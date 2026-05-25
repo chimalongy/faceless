@@ -29,26 +29,26 @@ export default function EditableGeneratedScript({
           <button
             type="button"
             onClick={startEdit}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-emerald-200 hover:border-emerald-300 text-emerald-800 hover:text-emerald-900 transition-all"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-gray-200 hover:border-orange-300 hover:bg-orange-50 text-stone-600 hover:text-orange-600 transition-all text-sm font-medium"
           >
-            <FaEdit />
-            <span className="font-medium">Edit</span>
+            <FaEdit className="text-xs" />
+            <span>Edit</span>
           </button>
         ) : (
           <button
             type="button"
             onClick={cancelEdit}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-gray-200 hover:border-gray-300 text-gray-700 hover:text-gray-900 transition-all"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-gray-200 hover:border-gray-300 text-stone-600 hover:text-stone-900 transition-all text-sm font-medium"
           >
-            <FaTimes />
-            <span className="font-medium">Cancel</span>
+            <FaTimes className="text-xs" />
+            <span>Cancel</span>
           </button>
         )}
       </div>
 
       {!isEditing ? (
-        <div className="bg-white/80 rounded-xl border-2 border-emerald-200 px-6 py-4 shadow-inner">
-          <pre className="whitespace-pre-wrap font-mono text-[15px] leading-relaxed text-gray-700">
+        <div className="bg-gray-50 rounded-xl border border-gray-100 px-5 py-4">
+          <pre className="whitespace-pre-wrap font-mono text-[14px] leading-relaxed text-stone-700">
             {initial}
           </pre>
         </div>
@@ -60,16 +60,16 @@ export default function EditableGeneratedScript({
             rows={12}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            className="w-full rounded-xl border-2 border-emerald-200 bg-white/80 px-6 py-4 text-gray-700 focus:outline-none focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100 transition-all resize-y font-mono text-[15px] leading-relaxed shadow-inner"
+            className="w-full rounded-xl border-2 border-gray-200 bg-white px-5 py-4 text-stone-700 focus:outline-none focus:border-orange-400 focus:ring-4 focus:ring-orange-100 transition-all resize-y font-mono text-[14px] leading-relaxed"
             placeholder="Your generated script will appear here..."
           />
 
           <div className="flex justify-end">
             <button
               type="submit"
-              className="group inline-flex items-center gap-3 px-8 py-3.5 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-emerald-500/30 hover:scale-[1.02] transition-all"
+              className="group inline-flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold rounded-xl shadow-md shadow-orange-500/20 hover:opacity-90 hover:-translate-y-px active:translate-y-0 transition-all"
             >
-              <FaSave className="group-hover:rotate-12 transition-transform" />
+              <FaSave className="text-xs group-hover:scale-110 transition-transform" />
               <span>Save Script Changes</span>
             </button>
           </div>
@@ -78,5 +78,3 @@ export default function EditableGeneratedScript({
     </div>
   );
 }
-
-

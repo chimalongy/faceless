@@ -13,7 +13,6 @@ export default function DeleteTopicButton({ topicId, channelId, channelType }) {
     return (
         <form
             action={deleteTopic}
-            className="ml-auto"
             onSubmit={handleSubmit}
         >
             <input type="hidden" name="topicId" value={topicId} />
@@ -22,10 +21,10 @@ export default function DeleteTopicButton({ topicId, channelId, channelType }) {
             <input type="hidden" name="confirm" value="yes" />
             <button
                 type="submit"
-                className="inline-flex items-center gap-1.5 text-xs text-red-500 hover:text-red-600 px-2.5 py-1.5 rounded-lg hover:bg-red-50 transition-colors"
+                className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-red-500 hover:text-white hover:bg-red-500 px-3 py-2 rounded-xl border border-red-200 hover:border-red-500 hover:shadow-md hover:shadow-red-500/20 active:scale-95 transition-all duration-200"
                 aria-label="Delete topic"
             >
-                <FaTrash className="text-[10px]" />
+                <FaTrash className="text-[11px]" />
                 <span className="hidden sm:inline">Delete</span>
             </button>
         </form>

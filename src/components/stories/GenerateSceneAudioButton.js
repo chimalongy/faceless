@@ -9,14 +9,13 @@ import Modal from '../../components/ui/Modal';
 export default function GenerateSceneAudioButton({ storyId, sceneNumber, sceneTitle, voices = [] }) {
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [generationMode, setGenerationMode] = useState('clone'); // 'clone' or 'link'
+  const [generationMode, setGenerationMode] = useState('clone');
   const [selectedVoiceId, setSelectedVoiceId] = useState('');
   const [audioLink, setAudioLink] = useState('');
   const router = useRouter();
 
   const handleOpenModal = () => {
     setShowModal(true);
-    // Select first voice by default if available
     if (voices.length > 0 && !selectedVoiceId) {
       setSelectedVoiceId(voices[0].voice_id);
     }
@@ -81,9 +80,9 @@ export default function GenerateSceneAudioButton({ storyId, sceneNumber, sceneTi
         type="button"
         onClick={handleOpenModal}
         disabled={loading}
-        className="group inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-fuchsia-500 text-white font-medium hover:shadow-lg hover:shadow-purple-500/25 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-fuchsia-500 text-white font-semibold text-sm hover:opacity-90 hover:-translate-y-px active:translate-y-0 transition-all shadow-md shadow-purple-500/20 disabled:opacity-70 disabled:cursor-not-allowed"
       >
-        <FaMagic className={`group-hover:scale-110 transition-transform ${loading ? 'animate-spin' : ''}`} />
+        <FaMagic className={`text-xs ${loading ? 'animate-spin' : ''}`} />
         <span>{loading ? 'Generating...' : 'Generate Scene Audio'}</span>
       </button>
 
@@ -94,21 +93,21 @@ export default function GenerateSceneAudioButton({ storyId, sceneNumber, sceneTi
             <button
               onClick={() => setGenerationMode('clone')}
               className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${generationMode === 'clone'
-                  ? 'bg-white text-purple-600 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
+                ? 'bg-white text-purple-600 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
                 }`}
             >
-              <FaMicrophone />
+              <FaMicrophone className="text-xs" />
               Use Cloned Voice
             </button>
             <button
               onClick={() => setGenerationMode('link')}
               className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${generationMode === 'link'
-                  ? 'bg-white text-purple-600 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
+                ? 'bg-white text-purple-600 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
                 }`}
             >
-              <FaLink />
+              <FaLink className="text-xs" />
               Use Gradio Link
             </button>
           </div>
@@ -118,22 +117,22 @@ export default function GenerateSceneAudioButton({ storyId, sceneNumber, sceneTi
             {generationMode === 'clone' ? (
               <div className="space-y-4">
                 {voices.length === 0 ? (
-                  <div className="text-center py-6 text-gray-500 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                  <div className="text-center py-6 text-stone-500 bg-gray-50 rounded-xl border border-dashed border-gray-200">
                     No cloned voices found. Please create a voice clone first.
                   </div>
                 ) : (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-stone-700 mb-2">
                       Select a Voice Clone
                     </label>
-                    <div className="grid gap-3 max-h-60 overflow-y-auto">
+                    <div className="grid gap-2 max-h-60 overflow-y-auto">
                       {voices.map((voice) => (
                         <div
                           key={voice.id}
                           onClick={() => setSelectedVoiceId(voice.voice_id)}
-                          className={`p-3 rounded-lg border cursor-pointer transition-all flex items-center gap-3 ${selectedVoiceId === voice.voice_id
-                              ? 'border-purple-500 bg-purple-50 ring-1 ring-purple-500'
-                              : 'border-gray-200 hover:border-purple-200 hover:bg-gray-50'
+                          className={`p-3 rounded-xl border cursor-pointer transition-all flex items-center gap-3 ${selectedVoiceId === voice.voice_id
+                            ? 'border-purple-500 bg-purple-50 ring-1 ring-purple-500'
+                            : 'border-gray-200 hover:border-purple-200 hover:bg-gray-50'
                             }`}
                         >
                           <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${selectedVoiceId === voice.voice_id ? 'border-purple-500' : 'border-gray-400'
@@ -143,10 +142,10 @@ export default function GenerateSceneAudioButton({ storyId, sceneNumber, sceneTi
                             )}
                           </div>
                           <div className="flex-1">
-                            <p className="font-medium text-gray-900 truncate">
+                            <p className="font-medium text-stone-900 truncate text-sm">
                               {voice.voice_id}
                             </p>
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-stone-500">
                               {voice.clone_status === 'completed' ? 'Ready to use' : voice.clone_status}
                             </p>
                           </div>
@@ -158,7 +157,7 @@ export default function GenerateSceneAudioButton({ storyId, sceneNumber, sceneTi
               </div>
             ) : (
               <div>
-                <label htmlFor="audio-link-scene" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="audio-link-scene" className="block text-sm font-medium text-stone-700 mb-2">
                   Enter the audio generation link
                 </label>
                 <input
@@ -167,9 +166,9 @@ export default function GenerateSceneAudioButton({ storyId, sceneNumber, sceneTi
                   value={audioLink}
                   onChange={(e) => setAudioLink(e.target.value)}
                   placeholder="https://example.gradio.live"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
+                  className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all text-sm"
                 />
-                <p className="mt-2 text-xs text-gray-500">
+                <p className="mt-2 text-xs text-stone-500">
                   Paste the Gradio link from your TTS service
                 </p>
               </div>
@@ -179,7 +178,7 @@ export default function GenerateSceneAudioButton({ storyId, sceneNumber, sceneTi
           <div className="flex gap-3 justify-end pt-4 border-t border-gray-100">
             <button
               onClick={handleCloseModal}
-              className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+              className="px-4 py-2 rounded-xl border border-gray-200 text-stone-600 hover:bg-gray-50 transition-colors text-sm font-medium"
             >
               Cancel
             </button>
@@ -190,7 +189,7 @@ export default function GenerateSceneAudioButton({ storyId, sceneNumber, sceneTi
                 (generationMode === 'link' && !audioLink.trim()) ||
                 (generationMode === 'clone' && !selectedVoiceId)
               }
-              className="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-fuchsia-500 text-white hover:shadow-lg hover:shadow-purple-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-fuchsia-500 text-white hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm font-semibold shadow-md shadow-purple-500/20"
             >
               {loading ? 'Generating...' : 'Generate Audio'}
             </button>

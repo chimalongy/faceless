@@ -1,7 +1,18 @@
+// src/app/dashboard/channels/[channelId]/[channelType]/page.js
 import Link from 'next/link';
 import { getChannel } from '../../../../../lib/actions';
 import { supabase } from '../../../../../lib/supabase';
-import { FaArrowLeft, FaPlus, FaLayerGroup, FaFileAlt, FaCalendarAlt, FaCamera, FaImage, FaEllipsisH, FaChartLine, FaUsers, FaVideo, FaCog } from 'react-icons/fa';
+import {
+  FaArrowLeft,
+  FaPlus,
+  FaLayerGroup,
+  FaFileAlt,
+  FaCalendarAlt,
+  FaVideo,
+  FaCog,
+  FaArrowRight,
+  FaRobot,
+} from 'react-icons/fa';
 import { notFound } from 'next/navigation';
 import GenerateTopicsButton from './GenerateTopicsButton';
 import DeleteTopicButton from './DeleteTopicButton';
@@ -19,7 +30,7 @@ async function getTopics(channelId) {
 function formatDate(dateString) {
   return new Date(dateString).toLocaleDateString('en-US', {
     month: 'short',
-    day: 'numeric'
+    day: 'numeric',
   });
 }
 
@@ -27,7 +38,7 @@ export default async function ChannelDetailsPage({ params }) {
   const id = (await params).channelId;
   const [channel, topics] = await Promise.all([
     getChannel(id),
-    getTopics(id)
+    getTopics(id),
   ]);
 
   if (!channel) {
@@ -35,244 +46,241 @@ export default async function ChannelDetailsPage({ params }) {
   }
 
   const channel_type = channel.channel_type;
-  const totalStories = topics.reduce((sum, topic) => sum + (topic.stories?.[0]?.count || 0), 0);
+  const totalStories = topics.reduce(
+    (sum, topic) => sum + (topic.stories?.[0]?.count || 0),
+    0
+  );
+
+  const statCards = [
+    {
+      label: 'Topics',
+      value: topics.length,
+      icon: <FaLayerGroup className="text-sm" />,
+      iconBg: 'bg-orange-50',
+      iconColor: 'text-orange-500',
+      accent: 'border-orange-500',
+      trend: 'Total topics',
+    },
+    {
+      label: 'Stories',
+      value: totalStories,
+      icon: <FaFileAlt className="text-sm" />,
+      iconBg: 'bg-emerald-50',
+      iconColor: 'text-emerald-600',
+      accent: 'border-emerald-500',
+      trend: 'Across all topics',
+    },
+    {
+      label: 'Channel Type',
+      value: channel_type.toUpperCase(),
+      icon: <FaVideo className="text-sm" />,
+      iconBg: 'bg-amber-50',
+      iconColor: 'text-amber-500',
+      accent: 'border-amber-500',
+      trend: 'Version',
+    },
+  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50/30 to-white">
+    <div className="space-y-8 pb-10 px-2">
 
-      {/* Sticky top nav bar - refined */}
-      <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-orange-100 shadow-sm">
-        <div className="px-4 py-3 flex items-center gap-4">
-          <Link
-            href="/dashboard/channels"
-            className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-orange-50 text-orange-600 hover:bg-orange-100 hover:text-orange-700 transition-all duration-200 flex-shrink-0 group"
-            aria-label="Back to Channels"
-          >
-            <FaArrowLeft className="text-sm group-hover:-translate-x-0.5 transition-transform" />
-          </Link>
-          <div className="flex-1 min-w-0">
-            <h1 className="text-lg font-bold text-gray-900 truncate">
+      {/* ── BACK LINK ── */}
+      <Link
+        href="/dashboard/channels"
+        className="inline-flex items-center gap-2 text-[13px] font-medium text-stone-400 hover:text-orange-500 transition-colors no-underline"
+      >
+        <FaArrowLeft className="text-xs" />
+        Back to Channels
+      </Link>
+
+      {/* ── PAGE HEADER ── */}
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+        <div className="flex items-start gap-4">
+          <div className="flex-shrink-0">
+            <ChannelMediaUpload
+              channelId={id}
+              type="picture"
+              currentUrl={channel.channel_picture_url}
+              channelName={channel.name}
+            />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[12px] font-bold tracking-[0.12em] text-orange-500 uppercase mb-1.5">
+              {channel_type.toUpperCase()} Channel
+            </p>
+            <h1
+              className="text-[28px] font-extrabold text-stone-900 tracking-tight leading-tight"
+              style={{ fontFamily: "'Syne', sans-serif" }}
+            >
               {channel.name}
             </h1>
-            <p className="text-xs text-gray-500 truncate">
-              Channel Dashboard
-            </p>
-          </div>
-          {/* Quick stats in nav */}
-          <div className="hidden sm:flex items-center gap-3 text-xs">
-            <div className="flex items-center gap-1.5 bg-orange-50 px-3 py-1.5 rounded-full">
-              <FaLayerGroup className="text-orange-500 text-[10px]" />
-              <span className="font-medium text-gray-700">{topics.length}</span>
-              <span className="text-gray-500">topics</span>
-            </div>
-            <div className="flex items-center gap-1.5 bg-emerald-50 px-3 py-1.5 rounded-full">
-              <FaFileAlt className="text-emerald-500 text-[10px]" />
-              <span className="font-medium text-gray-700">{totalStories}</span>
-              <span className="text-gray-500">stories</span>
-            </div>
+            {channel.description && (
+              <p className="text-[15px] text-stone-400 mt-1 line-clamp-2">
+                {channel.description}
+              </p>
+            )}
           </div>
         </div>
-      </div>
 
-      {/* Hero Section - Banner only, no overlapping content */}
-      <div className="relative">
-        <div className="relative w-full h-48 sm:h-64 lg:h-72 bg-gradient-to-br from-orange-500 via-amber-500 to-yellow-400 overflow-hidden group">
-          <ChannelMediaUpload 
-            channelId={id} 
-            type="banner" 
-            currentUrl={channel.channel_banner_url} 
-            channelName={channel.name} 
-          />
-        </div>
-      </div>
-
-      {/* Channel info section - Below banner, no overlap */}
-      <div className="px-4 sm:px-6 lg:px-8 py-6">
-        <div className="max-w-5xl mx-auto">
-          {/* Avatar and channel info */}
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
-            {/* Avatar */}
-            <ChannelMediaUpload 
-              channelId={id} 
-              type="picture" 
-              currentUrl={channel.channel_picture_url} 
-              channelName={channel.name} 
-            />
-
-            {/* Name and description */}
-            <div className="flex-1 min-w-0">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
-                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">
-                  {channel.name}
-                </h2>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700 w-fit">
-                  <FaVideo className="text-[10px]" />
-                  {channel_type}
-                </span>
-              </div>
-              {channel.description && (
-                <p className="text-sm text-gray-600 leading-relaxed">
-                  {channel.description}
-                </p>
-              )}
-
-              {/* Stats row for mobile */}
-              <div className="flex items-center gap-4 mt-3 sm:hidden">
-                <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                  <FaLayerGroup className="text-orange-400" />
-                  <span>{topics.length} topics</span>
-                </div>
-                <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                  <FaFileAlt className="text-emerald-400" />
-                  <span>{totalStories} stories</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Actions Bar - Improved with better spacing and visual hierarchy ── */}
-      <div className="sticky top-[57px] z-10 bg-white/90 backdrop-blur-md border-b border-orange-100/60 px-4 py-4 sm:px-6 lg:px-8">
-        <div className="flex gap-3 max-w-5xl mx-auto">
-          <GenerateTopicsButton channelId={id} />
-          <Link
-            href={`/dashboard/channels/${id}/${channel_type}/topics/new`}
-            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white px-6 py-2.5 rounded-xl text-sm font-semibold shadow-md hover:shadow-lg hover:from-orange-600 hover:to-amber-600 transition-all duration-200 active:scale-95"
-          >
-            <FaPlus className="text-xs" />
-            <span>Create Topic</span>
-          </Link>
+        <div className="flex items-center gap-3 self-start sm:self-auto flex-shrink-0">
           <Link
             href={`/dashboard/channels/${id}/v1/configure`}
-            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 bg-white border border-orange-200 text-orange-600 px-6 py-2.5 rounded-xl text-sm font-semibold shadow-sm hover:shadow-md hover:bg-orange-50 transition-all duration-200 active:scale-95 group"
+            className="inline-flex items-center gap-2 bg-white border border-gray-200 text-stone-600 text-sm font-semibold px-4 py-2.5 rounded-xl hover:border-gray-300 hover:bg-gray-50 transition-all no-underline"
           >
-            <FaCog className="text-xs group-hover:rotate-90 transition-transform duration-500" />
-            <span>Configure</span>
+            <FaCog className="text-xs" />
+            <span className="hidden sm:inline">Configure</span>
+          </Link>
+          <Link
+            href={`/dashboard/channels/${id}/${channel_type}/topics/new`}
+            className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white text-sm font-semibold px-5 py-2.5 rounded-xl shadow-md shadow-orange-500/20 hover:opacity-90 hover:-translate-y-px active:translate-y-0 transition-all no-underline"
+          >
+            <FaPlus className="text-xs" />
+            New Topic
           </Link>
         </div>
       </div>
 
-      {/* ── Topics List - Redesigned with cards and better visual hierarchy ── */}
-      <div className="px-4 py-8 sm:px-6 lg:px-8">
-        <div className="max-w-5xl mx-auto">
-
-          {/* Section header - Enhanced */}
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-md">
-              <FaLayerGroup className="text-white text-lg" />
-            </div>
-            <div>
-              <h3 className="text-xl font-bold text-gray-900">Topics</h3>
-              <p className="text-sm text-gray-500">Organize your video ideas and stories</p>
-            </div>
-            <span className="ml-auto text-sm font-medium text-gray-700 bg-orange-50 px-4 py-1.5 rounded-full border border-orange-200 shadow-sm">
-              {topics.length} {topics.length === 1 ? 'topic' : 'topics'}
-            </span>
-          </div>
-
-          {topics.length === 0 ? (
-            /* Empty state - More engaging */
-            <div className="bg-white rounded-2xl p-12 text-center border-2 border-dashed border-orange-200 shadow-sm">
-              <div className="w-20 h-20 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-orange-100 to-amber-100 flex items-center justify-center">
-                <FaLayerGroup className="text-3xl text-orange-500" />
+      {/* ── STAT CARDS ── */}
+      <div className="grid grid-cols-3 gap-3 px-2">
+        {statCards.map((card) => (
+          <div
+            key={card.label}
+            className="group bg-white rounded-2xl border border-gray-100 p-4 sm:p-6 shadow-sm hover:shadow-[0_8px_24px_rgba(0,0,0,0.07)] hover:-translate-y-0.5 transition-all duration-200"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div
+                className={`w-8 h-8 sm:w-10 sm:h-10 ${card.iconBg} rounded-xl flex items-center justify-center ${card.iconColor}`}
+              >
+                {card.icon}
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">No topics yet</h3>
-              <p className="text-sm text-gray-500 mb-8 max-w-md mx-auto">
-                Topics help you organize your video ideas into manageable groups.
-                Create your first topic to start building your content strategy.
-              </p>
+              <span className={`w-1 h-6 sm:h-8 rounded-full ${card.accent} opacity-70`} />
+            </div>
+            <p className="text-[11px] sm:text-[13px] font-medium text-gray-400 mb-1">
+              {card.label}
+            </p>
+            <p
+              className="text-[20px] sm:text-[28px] font-extrabold text-stone-900 leading-none tracking-tight"
+              style={{ fontFamily: "'Syne', sans-serif" }}
+            >
+              {card.value}
+            </p>
+            <p className="text-[11px] text-gray-400 mt-2 flex items-center gap-1">
+              {card.trend}
+            </p>
+          </div>
+        ))}
+      </div>
+
+
+
+      {/* ── TOPICS SECTION ── */}
+      <div>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+          <div>
+            <p className="text-[12px] font-bold tracking-[0.12em] text-orange-500 uppercase mb-1">
+              Content
+            </p>
+            <h2
+              className="text-[16px] font-bold text-stone-900 tracking-tight"
+              style={{ fontFamily: "'Syne', sans-serif" }}
+            >
+              Topics
+            </h2>
+          </div>
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <GenerateTopicsButton channelId={id} />
+          </div>
+        </div>
+
+        {topics.length === 0 ? (
+          <div className="bg-white rounded-2xl border-2 border-dashed border-orange-200 p-10 text-center">
+            <div className="w-14 h-14 bg-orange-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <FaLayerGroup className="text-orange-500 text-xl" />
+            </div>
+            <h2
+              className="text-[20px] font-extrabold text-stone-900 tracking-tight mb-2"
+              style={{ fontFamily: "'Syne', sans-serif" }}
+            >
+              No topics yet
+            </h2>
+            <p className="text-[15px] text-stone-400 mb-7 max-w-xs mx-auto">
+              Topics help you organize your video ideas into manageable groups.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <Link
                 href={`/dashboard/channels/${id}/${channel_type}/topics/new`}
-                className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white px-6 py-3 rounded-xl text-sm font-semibold hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold text-[14px] px-6 py-3 rounded-xl shadow-lg shadow-orange-500/20 hover:opacity-90 hover:-translate-y-px active:translate-y-0 transition-all no-underline"
               >
                 <FaPlus className="text-xs" />
-                Create your first topic
+                Create First Topic
               </Link>
             </div>
-          ) : (
-            /* Topics grid/cards - Modern card design */
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {topics.map((topic, index) => (
-                <div
-                  key={topic.id}
-                  className="group relative bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:border-orange-200 transition-all duration-300"
-                >
-                  <div className="p-5">
-                    {/* Header with topic number and badge */}
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-orange-100 to-amber-100 flex items-center justify-center">
-                          <span className="text-xs font-bold text-orange-600">#{index + 1}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <div className="flex items-center gap-1 bg-emerald-50 px-2 py-0.5 rounded-full">
-                            <FaFileAlt className="text-emerald-500 text-[9px]" />
-                            <span className="text-xs font-medium text-emerald-700">
-                              {topic.stories?.[0]?.count || 0} stories
-                            </span>
-                          </div>
-                        </div>
-                      </div>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {topics.map((topic, index) => (
+              <div
+                key={topic.id}
+                className="group relative bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-[0_8px_24px_rgba(0,0,0,0.07)] hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
+              >
+                {/* Bottom accent bar on hover */}
+                <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-orange-500 to-amber-500 rounded-b-2xl scale-x-0 group-hover:scale-x-100 transition-transform origin-left pointer-events-none" />
 
-                      {/* Action menu button */}
-                      <button className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
-                        <FaEllipsisH className="text-xs" />
-                      </button>
-                    </div>
-
-                    {/* Topic content */}
+                <div className="p-5 sm:p-6">
+                  <div className="flex items-start justify-between gap-4">
                     <Link
                       href={`/dashboard/channels/${id}/${channel_type}/topics/${topic.id}`}
-                      className="block focus:outline-none"
+                      className="flex-1 min-w-0 no-underline group/link"
                     >
-                      <h4 className="text-lg font-bold text-gray-900 group-hover:text-orange-600 transition-colors mb-1 line-clamp-1">
-                        {topic.name}
-                      </h4>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="w-6 h-6 rounded-lg bg-orange-50 text-orange-600 text-[11px] font-bold flex items-center justify-center flex-shrink-0">
+                          {index + 1}
+                        </span>
+                        <h3 className="text-[15px] font-bold text-stone-900 group-hover/link:text-orange-600 transition-colors truncate">
+                          {topic.name}
+                        </h3>
+                      </div>
+
                       {topic.description && (
-                        <p className="text-sm text-gray-500 line-clamp-2 mb-3">
+                        <p className="text-[13px] text-stone-400 line-clamp-2 mb-3 leading-snug">
                           {topic.description}
                         </p>
                       )}
 
-                      {/* Metadata */}
-                      <div className="flex items-center gap-3 text-xs text-gray-400">
+                      <div className="flex items-center gap-4 text-[12px] text-gray-400">
+                        <span className="flex items-center gap-1.5">
+                          <FaFileAlt className="text-emerald-500 text-[10px]" />
+                          <span className="text-stone-600 font-medium">
+                            {topic.stories?.[0]?.count || 0}
+                          </span>
+                          <span>stories</span>
+                        </span>
                         {topic.created_at && (
-                          <div className="flex items-center gap-1">
+                          <span className="flex items-center gap-1.5">
                             <FaCalendarAlt className="text-[10px]" />
                             <span>{formatDate(topic.created_at)}</span>
-                          </div>
+                          </span>
                         )}
-                        <div className="flex items-center gap-1">
-                          <FaChartLine className="text-[10px]" />
-                          <span>{Math.floor(Math.random() * 50)}% complete</span>
-                        </div>
                       </div>
                     </Link>
 
-                    {/* Footer with delete button */}
-                    <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-end">
-                      <DeleteTopicButton topicId={topic.id} channelId={id} channelType={channel_type} />
+                    <div className="flex flex-col items-end gap-3 flex-shrink-0">
+                      <FaArrowRight className="text-[12px] text-gray-300 group-hover:text-orange-500 group-hover:translate-x-0.5 transition-all" />
+                      <DeleteTopicButton
+                        topicId={topic.id}
+                        channelId={id}
+                        channelType={channel_type}
+                      />
                     </div>
                   </div>
-
-                  {/* Hover gradient effect */}
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-orange-500/0 to-orange-500/0 group-hover:from-orange-500/5 group-hover:to-amber-500/5 transition-all duration-300 pointer-events-none" />
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Quick tip footer */}
-      <div className="px-4 py-6 border-t border-orange-100 bg-white/50">
-        <div className="max-w-5xl mx-auto text-center">
-          <p className="text-xs text-gray-400">
-            💡 Tip: Topics help you organize your content. Create multiple topics to categorize your stories effectively.
-          </p>
-        </div>
-      </div>
+
     </div>
   );
 }

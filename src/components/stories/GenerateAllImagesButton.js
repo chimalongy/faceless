@@ -14,10 +14,8 @@ export default function GenerateAllImagesButton({ storyId, useCustomLink, defaul
 
   const handleClick = () => {
     if (useCustomLink) {
-      // Show modal to get custom link
       setShowModal(true);
     } else {
-      // Use default link directly (can be empty, API will handle it)
       handleGenerate(defaultLink || '');
     }
   };
@@ -29,7 +27,7 @@ export default function GenerateAllImagesButton({ storyId, useCustomLink, defaul
 
   const handleGenerate = async (link) => {
     const generationLink = link || imageGenLink;
-    
+
     if (!storyId) {
       toast.error('Story ID is required');
       return;
@@ -47,7 +45,7 @@ export default function GenerateAllImagesButton({ storyId, useCustomLink, defaul
         },
         body: JSON.stringify({ 
           storyId, 
-          image_generation_link: generationLink || undefined // Send undefined if empty
+          image_generation_link: generationLink || undefined
         }),
       });
 
@@ -73,16 +71,16 @@ export default function GenerateAllImagesButton({ storyId, useCustomLink, defaul
         type="button"
         onClick={handleClick}
         disabled={loading}
-        className="group inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-medium rounded-lg hover:shadow-lg hover:shadow-blue-500/25 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+        className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-semibold text-sm rounded-xl hover:opacity-90 hover:-translate-y-px active:translate-y-0 transition-all shadow-md shadow-blue-500/20 disabled:opacity-70 disabled:cursor-not-allowed"
       >
-        <FaMagic className="group-hover:scale-110 transition-transform" />
+        <FaMagic className="text-xs" />
         <span>{loading ? 'Generating…' : 'Generate All'}</span>
       </button>
 
       <Modal isOpen={showModal} onClose={handleCloseModal} title="Image Generation Link">
         <div className="space-y-4">
           <div>
-            <label htmlFor="image-gen-link" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="image-gen-link" className="block text-sm font-medium text-stone-700 mb-2">
               Enter the image generation link (optional)
             </label>
             <input
@@ -91,22 +89,22 @@ export default function GenerateAllImagesButton({ storyId, useCustomLink, defaul
               value={imageGenLink}
               onChange={(e) => setImageGenLink(e.target.value)}
               placeholder="https://example.gradio.live (optional)"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+              className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-sm"
             />
-            <p className="mt-2 text-xs text-gray-500">
+            <p className="mt-2 text-xs text-stone-500">
               Leave empty to use the default image generation service
             </p>
           </div>
           <div className="flex gap-3 justify-end">
             <button
               onClick={handleCloseModal}
-              className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+              className="px-4 py-2 rounded-xl border border-gray-200 text-stone-600 hover:bg-gray-50 transition-colors text-sm font-medium"
             >
               Cancel
             </button>
             <button
               onClick={() => handleGenerate()}
-              className="px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-500 text-white hover:shadow-lg hover:shadow-blue-500/25 transition-all"
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-500 text-white hover:opacity-90 transition-all text-sm font-semibold shadow-md shadow-blue-500/20"
             >
               Generate
             </button>

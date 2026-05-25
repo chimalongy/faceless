@@ -30,17 +30,17 @@ export default function CopyButton({
     }
   };
 
-  const baseClasses = 'flex items-center gap-2 rounded-lg transition-colors border';
+  const baseClasses = 'inline-flex items-center gap-2 rounded-xl transition-all border font-medium';
   const sizeClasses =
     size === 'lg'
-      ? 'text-base px-5 py-3'
+      ? 'text-sm px-5 py-3'
       : size === 'md'
         ? 'text-sm px-4 py-2.5'
-        : 'text-sm px-3 py-2';
+        : 'text-xs px-3 py-2';
   const styles =
     variant === 'primary'
-      ? 'bg-gray-900 text-white hover:bg-gray-800 border-gray-900'
-      : 'text-gray-600 hover:text-gray-900 bg-white hover:bg-gray-50 border-gray-200';
+      ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white border-transparent hover:opacity-90 hover:-translate-y-px active:translate-y-0 shadow-md shadow-orange-500/20'
+      : 'text-stone-600 hover:text-orange-600 bg-white hover:bg-orange-50 border-gray-200 hover:border-orange-200';
 
   return (
     <button
@@ -53,5 +53,3 @@ export default function CopyButton({
     </button>
   );
 }
-
-

@@ -53,9 +53,9 @@ export default function GenerateAllSceneFramesButton({ storyId }) {
                 type="button"
                 onClick={() => setIsModalOpen(true)}
                 disabled={loading}
-                className="group inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-500 to-purple-500 text-white font-medium rounded-lg hover:shadow-lg hover:shadow-violet-500/25 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-500 to-purple-500 text-white font-semibold text-sm rounded-xl hover:opacity-90 hover:-translate-y-px active:translate-y-0 transition-all shadow-md shadow-violet-500/20 disabled:opacity-70 disabled:cursor-not-allowed"
             >
-                <FaMagic className="group-hover:scale-110 transition-transform" />
+                <FaMagic className="text-xs" />
                 <span>{loading ? 'Generating…' : 'Generate All'}</span>
             </button>
 
@@ -65,7 +65,7 @@ export default function GenerateAllSceneFramesButton({ storyId }) {
                 title="Video Generation Link"
             >
                 <div className="space-y-4">
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-stone-600">
                         Please provide the video generation service URL.
                     </p>
                     <input
@@ -73,19 +73,19 @@ export default function GenerateAllSceneFramesButton({ storyId }) {
                         value={videoGenUrl}
                         onChange={(e) => setVideoGenUrl(e.target.value)}
                         placeholder="https://your-generation-api.com"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all"
+                        className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all text-sm"
                         autoFocus
                     />
                     <div className="flex justify-end gap-3 mt-6">
                         <button
                             onClick={() => setIsModalOpen(false)}
-                            className="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium transition-colors"
+                            className="px-4 py-2 text-stone-600 hover:text-stone-800 font-medium transition-colors text-sm"
                         >
                             Cancel
                         </button>
                         <button
                             onClick={handleGenerate}
-                            className="px-6 py-2 bg-gradient-to-r from-violet-500 to-purple-500 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-violet-500/25 transition-all"
+                            className="px-5 py-2 bg-gradient-to-r from-violet-500 to-purple-500 text-white font-semibold rounded-xl hover:opacity-90 transition-all text-sm shadow-md shadow-violet-500/20"
                         >
                             Confirm
                         </button>
