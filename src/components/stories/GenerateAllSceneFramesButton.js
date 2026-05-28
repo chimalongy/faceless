@@ -10,11 +10,12 @@ export default function GenerateAllSceneFramesButton({ storyId, isEnabled }) {
     const [loading, setLoading] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [videoGenUrl, setVideoGenUrl] = useState('');
+    const [genMode, setGenMode] = useState('local'); // 'local' or 'external'
     const router = useRouter();
 
     const handleGenerate = async () => {
-        if (!storyId) {
-            toast.error('Story ID is required');
+        if (genMode === 'external' && !videoGenUrl.trim()) {
+            toast.error('External service URL is required');
             return;
         }
 
@@ -28,7 +29,7 @@ export default function GenerateAllSceneFramesButton({ storyId, isEnabled }) {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ storyId, videoGenUrl }),
+                body: JSON.stringify({ storyId, videoGenUrl: genMode === 'local' ? '' : videoGenUrl }),
             });
 
             const data = await res.json();
@@ -62,20 +63,57 @@ export default function GenerateAllSceneFramesButton({ storyId, isEnabled }) {
             <Modal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                title="Video Generation Link"
+                title="All Scenes Video Generation"
             >
-                <div className="space-y-4">
-                    <p className="text-sm text-stone-600">
-                        Please provide the video generation service URL.
-                    </p>
-                    <input
-                        type="url"
-                        value={videoGenUrl}
-                        onChange={(e) => setVideoGenUrl(e.target.value)}
-                        placeholder="https://your-generation-api.com"
-                        className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all text-sm"
-                        autoFocus
-                    />
+                <div className="space-y-5">
+                    {/* Select Mode */}
+                    <div className="space-y-2">
+                        <label className="text-xs font-bold uppercase tracking-wider text-stone-500">
+                            Rendering Mode
+                        </label>
+                        <div className="grid grid-cols-2 gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setGenMode('local')}
+                                className={`flex flex-col items-center justify-center p-3 rounded-xl border text-center transition-all ${
+                                    genMode === 'local'
+                                        ? 'border-violet-500 bg-violet-50/50 text-violet-700 shadow-sm'
+                                        : 'border-stone-100 hover:border-stone-200 text-stone-600'
+                                }`}
+                            >
+                                <span className="text-xs font-semibold">Direct Rendering</span>
+                                <span className="text-[10px] text-stone-400 mt-0.5">FFmpeg on server</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setGenMode('external')}
+                                className={`flex flex-col items-center justify-center p-3 rounded-xl border text-center transition-all ${
+                                    genMode === 'external'
+                                        ? 'border-violet-500 bg-violet-50/50 text-violet-700 shadow-sm'
+                                        : 'border-stone-100 hover:border-stone-200 text-stone-600'
+                                }`}
+                            >
+                                <span className="text-xs font-semibold">External Service</span>
+                                <span className="text-[10px] text-stone-400 mt-0.5">Custom URL</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    {genMode === 'external' && (
+                        <div className="space-y-2">
+                            <p className="text-xs text-stone-600">
+                                Please provide the video generation service URL.
+                            </p>
+                            <input
+                                type="url"
+                                value={videoGenUrl}
+                                onChange={(e) => setVideoGenUrl(e.target.value)}
+                                placeholder="https://your-generation-api.com"
+                                className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none transition-all text-sm"
+                                autoFocus
+                            />
+                        </div>
+                    )}
                     <div className="flex justify-end gap-3 mt-6">
                         <button
                             onClick={() => setIsModalOpen(false)}

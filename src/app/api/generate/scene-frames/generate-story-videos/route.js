@@ -24,11 +24,15 @@ export async function POST(request) {
     const body = await request.json();
     let { storyId, videoGenUrl } = body;
 
-    if (videoGenUrl.endsWith("/")){
-   videoGenUrl = videoGenUrl+"generate-video"
-    }
-    else{
-       videoGenUrl = videoGenUrl+"/generate-video"
+    if (videoGenUrl && videoGenUrl.trim() !== "") {
+      if (videoGenUrl.endsWith("/")){
+        videoGenUrl = videoGenUrl+"generate-video"
+      }
+      else{
+        videoGenUrl = videoGenUrl+"/generate-video"
+      }
+    } else {
+      videoGenUrl = "";
     }
 
     if (!storyId) {

@@ -2,6 +2,7 @@ import { task, logger } from "@trigger.dev/sdk/v3";
 import { supabase } from "../../lib/supabase.js";
 import { getSlideConfiguration } from "../../lib/utils/getSlideConfiguration.js";
 import { renderVideo } from "./render-video.js";
+import axios from "axios";
 
 export const getScriptVideo = task({
     id: "get-script-video",
@@ -51,17 +52,39 @@ export const getScriptVideo = task({
             logger.log("Triggering renderVideo task", { scene: scene_number });
 
             // ── Replaces: axios.post(video_service_url, { ... }) ──────────────
-            const run = await renderVideo.triggerAndWait({
-                scene_frame_upload_destination,
-                slides,
-                audioUrl,
-                assContent: subtitles,
-                audioDuration,
-                backgroundColor: "black",
-                fps: 30,
-            });
-
-            const data = run.output;
+            let data;
+            if (video_service_url && video_service_url.trim() !== "") {
+                logger.log("Sending scene to external video service URL", {
+                    scene: scene_number,
+                    video_service_url,
+                });
+                const videoServiceResponse = await axios.post(
+                    video_service_url,
+                    {
+                        scene_frame_upload_destination,
+                        slides,
+                        audioUrl,
+                        assContent: subtitles,
+                        audioDuration,
+                        backgroundColor: "black",
+                        fps: 30,
+                    },
+                    { timeout: 180000 }
+                );
+                data = videoServiceResponse.data;
+            } else {
+                logger.log("Triggering renderVideo task", { scene: scene_number });
+                const run = await renderVideo.triggerAndWait({
+                    scene_frame_upload_destination,
+                    slides,
+                    audioUrl,
+                    assContent: subtitles,
+                    audioDuration,
+                    backgroundColor: "black",
+                    fps: 30,
+                });
+                data = run.output;
+            }
 
             if (data.success) {
                 const { error } = await supabase
