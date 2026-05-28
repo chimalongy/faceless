@@ -18,7 +18,9 @@ export const GenerateTopicBackgroundMusic = task({
     id: "generate-topic-background-music",
 
     run: async (payload) => {
-        const { topic_id, music_prompt, music_length } = payload;
+        let { topic_id, music_prompt, music_length } = payload;
+
+        music_prompt = music_prompt.slice(0, 300);
 
         logger.info("═══════════════════════════════════════════════");
         logger.info("🎵 [STEP 0] Task started", {

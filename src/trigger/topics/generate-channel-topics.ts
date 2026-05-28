@@ -1,6 +1,8 @@
 import { task, logger } from "@trigger.dev/sdk/v3";
 import { supabase } from "../../lib/supabase";
 import { llmGenerateTopics } from "../../lib/apis/LLM-central.js";
+import { GenerateTopicBackgroundMusic } from "./generate-topic-background-music.js";
+
 
 type GenerateChannelTopicsPayload = {
   userId: string;
@@ -70,30 +72,31 @@ export const generateChannelTopicsTask = task({
 
 
       for (const topic of parsed.topics) {
-
-        //calling generate background music task from here.
-
-
-
-
-
-
-
-
-
         const image_theme = JSON.stringify(topic.image_generation_theme);
-        const { error } = await supabase.from('topics').insert({
-          user_id: userId,
-          channel_id: channelId,
-          name: topic.name,
-          description: topic.description,
-          background_music_prompt: topic.background_music_prompt ?? null,
-          background_music_duration: topic.background_music_duration ?? null,
-          image_generation_theme: image_theme,
-          story_thumbnail_prompt: topic.story_thumbnail_prompt ?? null,
-        });
+        const { data: insertedTopic, error } = await supabase
+          .from('topics')
+          .insert({
+            user_id: userId,
+            channel_id: channelId,
+            name: topic.name,
+            description: topic.description,
+            background_music_prompt: topic.background_music_prompt ?? null,
+            background_music_duration: topic.background_music_duration ?? null,
+            image_generation_theme: image_theme,
+            story_thumbnail_prompt: topic.story_thumbnail_prompt ?? null,
+          })
+          .select()
+          .single();
+
         if (error) {
           logger.error("Failed to insert topic", { error, topic });
+        } else if (insertedTopic?.id && topic.background_music_prompt) {
+          logger.info(`🎵 Triggering background music generation for topic: ${insertedTopic.id}`);
+          await GenerateTopicBackgroundMusic.trigger({
+            topic_id: insertedTopic.id,
+            music_prompt: topic.background_music_prompt,
+            music_length: topic.background_music_duration || 60,
+          });
         }
       }
 
