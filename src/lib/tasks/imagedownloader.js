@@ -1,6 +1,6 @@
 import axios from "axios";
 import { supabase } from "../../lib/supabase";
-import { getImageGenerationUrls } from "../../lib/apis/image-gen-apis.js";
+import { getImageGenerationUrls } from "../../lib/apis/getapis.js";
 
 export async function downloadandUploadImageToSupabase(
   sceneNumber,

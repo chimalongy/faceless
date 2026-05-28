@@ -52,9 +52,43 @@ export const generateSceneImageTask = task({
       return { success: false };
     }
 
+    // 🔹 Fetch existing images for this story and scene
+    const { data: existingImages, error: imagesError } = await supabase
+      .from("story_images")
+      .select("image_number")
+      .eq("story_id", storyId)
+      .eq("scene_number", sceneNumber);
+
+    if (imagesError) {
+      logger.error("Error fetching existing story images", { imagesError });
+    }
+
+    const expectedCount = sceneImageSetup.length;
+    const existingCount = existingImages ? existingImages.length : 0;
+
+    if (existingCount >= expectedCount) {
+      logger.info("⏭️ Skipping scene image generation: all images already exist", {
+        sceneNumber,
+        expectedCount,
+        existingCount,
+      });
+      return {
+        success: true,
+        sceneNumber,
+        skipped: true,
+      };
+    }
+
     for (let i = 0; i < sceneImageSetup.length; i++) {
       const imageSetup = sceneImageSetup[i];
       const originalPrompt = imageSetup.aiImagePrompts;
+
+      // 🔹 Skip if this specific image already exists
+      const imageExists = existingImages?.some((img) => img.image_number === i);
+      if (imageExists) {
+        logger.info("⏭️ Skipping existing image", { sceneNumber, imageNumber: i });
+        continue;
+      }
 
       logger.info("Improving image prompt", {
         sceneNumber,

@@ -25,6 +25,8 @@ create table channels (
   channel_picture_url text,
   channel_banner_url text,
   configurations text,
+  content_theme text check (content_theme in ('story_teller', 'teacher', 'narrator')),
+  narrator_voice text,
   created_at timestamp with time zone default timezone('utc'::text, now()),
   updated_at timestamp with time zone default timezone('utc'::text, now())
 );
@@ -52,6 +54,7 @@ create table public.stories (
   channel_id uuid not null,
   topic_id uuid not null,
   title text not null,
+  story_description text null,
   content text null,
   script_generated boolean null default false,
   generated_script text null,
@@ -68,13 +71,6 @@ create table public.stories (
   constraint stories_topic_id_fkey foreign KEY (topic_id) references topics (id) on delete CASCADE,
   constraint stories_user_id_fkey foreign KEY (user_id) references users (id) on delete CASCADE
 ) TABLESPACE pg_default;
-
-
-
-
-
-
-
 
 
 
@@ -169,6 +165,24 @@ create table public.image_apis (
   value text null,
   constraint image - apis_pkey primary key (id)
 ) TABLESPACE pg_default;
+
+
+CREATE TABLE llm_apis (
+    id BIGSERIAL PRIMARY KEY,
+    email TEXT NOT NULL,
+    llm_provider TEXT NOT NULL,
+    llm_url TEXT NOT NULL,
+    llm_api TEXT NOT NULL,
+    model_name TEXT NOT NULL,
+    usage_count INTEGER DEFAULT 0,
+    current_balance TEXT,
+    last_used TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+
+
 
 
 -- RLS Policies (Row Level Security)

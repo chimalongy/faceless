@@ -6,7 +6,7 @@ import { toast } from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 import Modal from '../ui/Modal';
 
-export default function GenerateSceneFrameVideoButton({ storyId, sceneNumber, sceneTitle }) {
+export default function GenerateSceneFrameVideoButton({ storyId, sceneNumber, sceneTitle, isEnabled }) {
     const [loading, setLoading] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [videoGenUrl, setVideoGenUrl] = useState('');
@@ -52,7 +52,7 @@ export default function GenerateSceneFrameVideoButton({ storyId, sceneNumber, sc
             <button
                 type="button"
                 onClick={() => setIsModalOpen(true)}
-                disabled={loading}
+                disabled={loading || !isEnabled}
                 className="inline-flex items-center justify-center gap-2 w-full px-4 py-2 bg-gradient-to-r from-violet-500 to-purple-500 text-white font-semibold text-xs rounded-xl hover:opacity-90 hover:-translate-y-px active:translate-y-0 transition-all shadow-md shadow-violet-500/20 disabled:opacity-70 disabled:cursor-not-allowed"
             >
                 <FaVideo className="text-[10px]" />

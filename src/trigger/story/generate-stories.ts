@@ -10,6 +10,7 @@ type Point = {
 
 type Story = {
   title: string;
+  story_description: string;
   content: {
     introduction: string;
     points: Point[];
@@ -78,6 +79,7 @@ export const generateStoriesTask = task({
         // ✅ Validate structure
         if (
           !parsed.title ||
+          !parsed.story_description ||
           !parsed.content?.introduction ||
           !Array.isArray(parsed.content.points) ||
           parsed.content.points.length === 0
@@ -135,6 +137,7 @@ export const generateStoriesTask = task({
             topic_id: topicId,
             channel_id: channelId,
             title: parsed.title,
+            story_description: parsed.story_description,
             content: JSON.stringify(parsed.content),
             social_media_target: socialMediaTarget,
             script_generated: false,

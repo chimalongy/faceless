@@ -21,12 +21,9 @@ export async function POST(request) {
       );
     }
 
-    const { storyId, image_generation_link } = await request.json();
-
-    
+    const { storyId } = await request.json();
 
     console.log("storyId", storyId)
-    console.log("image_generation_link", image_generation_link)
 
     if (!storyId) {
       return NextResponse.json(

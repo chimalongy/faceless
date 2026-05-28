@@ -43,6 +43,12 @@ export const generateScriptFrames = task({
       .select("image_url, scene_number, image_number")
       .eq("story_id", storyId);
 
+    // Fetch existing video frames
+    const { data: existing_frames } = await supabase
+      .from("story_video_frames")
+      .select("scene_number")
+      .eq("story_id", storyId);
+
     const generated_script = JSON.parse(story.generated_script);
     let scenes = generated_script.scenes;
 
@@ -60,6 +66,15 @@ export const generateScriptFrames = task({
       delete scene.duration;
 
       logger.log("Processing scene", { scene: scene.sceneNumber });
+
+      // Skip if scene video frame already exists (unless doing a single scene regeneration)
+      const frameExists = existing_frames?.some(
+        (f) => f.scene_number === scene.sceneNumber
+      );
+      if (frameExists && generation_type !== "single") {
+        logger.info("⏭️ Skipping existing scene video", { sceneNumber: scene.sceneNumber });
+        continue;
+      }
 
       const scene_audio = story_audio.find(
         (a) => a.scene_number === scene.sceneNumber

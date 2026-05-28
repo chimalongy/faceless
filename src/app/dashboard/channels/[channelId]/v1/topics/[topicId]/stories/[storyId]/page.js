@@ -35,7 +35,6 @@ import GenerateSceneAudioButton from '../../../../../../../../../components/stor
 import SceneAudioPlayer from '../../../../../../../../../components/stories/SceneAudioPlayer';
 import SceneAudioCard from '../../../../../../../../../components/stories/SceneAudioCard';
 import GenerateAllImagesButton from '../../../../../../../../../components/stories/GenerateAllImagesButton';
-import VisualAssetsControls from '../../../../../../../../../components/stories/VisualAssetsControls';
 import GenerateAllSceneFramesButton from '../../../../../../../../../components/stories/GenerateAllSceneFramesButton';
 import GenerateSceneFrameVideoButton from '../../../../../../../../../components/stories/GenerateSceneFrameVideoButton';
 import MergeVideosButton from '../../../../../../../../../components/stories/MergeVideosButton';
@@ -156,6 +155,16 @@ export default async function StoryDetailPage({ params }) {
           <p className="text-[14px] sm:text-[15px] text-stone-400 mt-1 line-clamp-2">
             {story.content.substring(0, 120)}{story.content.length > 120 ? '...' : ''}
           </p>
+          <div className="flex items-center gap-2 mt-2">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-stone-100 border border-stone-200 text-[11px] font-semibold text-stone-600">
+              <FaFileAlt className="text-[9px]" />
+              {wordCount.toLocaleString()} words
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-stone-100 border border-stone-200 text-[11px] font-semibold text-stone-600">
+              <FaClock className="text-[9px]" />
+              ~{Math.ceil(wordCount / 130)} min read
+            </span>
+          </div>
         </div>
 
         <div className="flex items-center gap-3 self-start sm:self-auto flex-shrink-0">

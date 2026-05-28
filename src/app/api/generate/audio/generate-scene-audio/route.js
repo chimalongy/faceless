@@ -23,9 +23,6 @@ export async function POST(request) {
     const {
       storyId,
       sceneNumber, // optional
-      audio_generation_link,
-      generation_mode,
-      voice_id,
     } = await request.json();
 
     if (!storyId) {
@@ -35,28 +32,10 @@ export async function POST(request) {
       );
     }
 
-    // Mode validation
-    if (generation_mode === "clone" && !voice_id) {
-      return NextResponse.json(
-        { error: "voice_id is required for clone mode" },
-        { status: 400 }
-      );
-    }
-
-    if ((!generation_mode || generation_mode === "link") && !audio_generation_link) {
-      return NextResponse.json(
-        { error: "audio_generation_link is required for link mode" },
-        { status: 400 }
-      );
-    }
-
     // 🔥 Trigger task
     const handle = await tasks.trigger("generate-scene-audio", {
       storyId,
       sceneNumber, // if undefined → generate all scenes
-      audio_generation_link,
-      generation_mode,
-      voice_id,
     });
 
     return NextResponse.json({

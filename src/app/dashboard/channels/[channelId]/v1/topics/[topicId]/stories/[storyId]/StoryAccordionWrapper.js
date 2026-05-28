@@ -34,7 +34,6 @@ import GenerateAudioButton from '../../../../../../../../../components/stories/G
 import GenerateSceneAudioButton from '../../../../../../../../../components/stories/GenerateSceneAudioButton';
 import SceneAudioCard from '../../../../../../../../../components/stories/SceneAudioCard';
 import GenerateAllImagesButton from '../../../../../../../../../components/stories/GenerateAllImagesButton';
-import VisualAssetsControls from '../../../../../../../../../components/stories/VisualAssetsControls';
 import GenerateAllSceneFramesButton from '../../../../../../../../../components/stories/GenerateAllSceneFramesButton';
 import GenerateSceneFrameVideoButton from '../../../../../../../../../components/stories/GenerateSceneFrameVideoButton';
 import MergeVideosButton from '../../../../../../../../../components/stories/MergeVideosButton';
@@ -163,6 +162,13 @@ export default function StoryAccordionWrapper({
       videoFramesByScene.set(frame.scene_number, frame);
     }
   });
+
+  // Calculate total expected images
+  let totalExpectedImages = 0;
+  scriptScenes.forEach((scene) => {
+    totalExpectedImages += scene.image_setup?.length || 0;
+  });
+  const allImagesGenerated = totalExpectedImages > 0 && images.length >= totalExpectedImages;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -297,7 +303,7 @@ export default function StoryAccordionWrapper({
             iconColor="text-blue-600"
             defaultOpen={false}
             headerActions={
-              <VisualAssetsControls storyId={story.id} />
+              <GenerateAllImagesButton storyId={story.id} />
             }
             badge={`${images.length}`}
           >
@@ -313,52 +319,113 @@ export default function StoryAccordionWrapper({
                   >
                     No Images Yet
                   </h3>
-                  <p className="text-stone-400 text-sm mb-6 max-w-xs mx-auto">
-                    Add images to enhance your story visualization
+                  <p className="text-stone-400 text-sm mb-2 max-w-xs mx-auto">
+                    Generate images to enhance your story visualization
                   </p>
-                  <button className="group inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold rounded-xl shadow-md shadow-orange-500/20 hover:opacity-90 hover:-translate-y-px active:translate-y-0 transition-all">
-                    <FaImage className="text-xs" />
-                    <span>Upload Images</span>
-                  </button>
                 </div>
               ) : (
                 <div className="space-y-6">
-                  <div className="grid grid-cols-2 gap-4">
-                    {images.map((img, index) => (
-                      <div key={img.id} className="relative group">
-                        <div className="aspect-video rounded-xl overflow-hidden border-2 border-gray-100 group-hover:border-orange-300 transition-all duration-300 shadow-sm">
-                          <img
-                            src={img.image_url}
-                            alt={`Story visual ${index + 1}`}
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                          />
-                        </div>
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl">
-                          <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-                            <span className="text-xs text-white/90 font-medium bg-black/40 px-2 py-1 rounded-full">
-                              Image {index + 1}
-                            </span>
-                            <a
-                              href={img.image_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1.5 text-xs text-white bg-black/60 hover:bg-white hover:text-black px-3 py-1.5 rounded-full border border-white/30 transition-colors"
-                            >
-                              <FaExternalLinkAlt className="text-[10px]" />
-                              <span>Full View</span>
-                            </a>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  {scriptScenes.map((scene) => {
+                    const sceneImages = images.filter((img) => img.scene_number === scene.sceneNumber);
 
-                  <div className="pt-4 border-t border-gray-100">
-                    <button className="group w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white font-semibold rounded-xl shadow-md shadow-orange-500/20 hover:opacity-90 hover:-translate-y-px active:translate-y-0 transition-all">
-                      <FaUpload className="text-xs" />
-                      <span>Add More Images</span>
-                    </button>
-                  </div>
+                    return (
+                      <div key={scene.sceneNumber} className="border border-orange-100/50 rounded-xl p-4 bg-orange-50/10">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <span className="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-orange-100 text-orange-600 text-xs font-bold">
+                              {scene.sceneNumber}
+                            </span>
+                            <h4 className="text-sm font-semibold text-stone-800">
+                              {scene.title || `Scene ${scene.sceneNumber}`}
+                            </h4>
+                          </div>
+                          <span className="text-xs text-stone-500 font-medium">
+                            {sceneImages.length} {sceneImages.length === 1 ? 'image' : 'images'}
+                          </span>
+                        </div>
+
+                        {scene.image_setup && scene.image_setup.length > 0 ? (
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            {scene.image_setup.map((setup, idx) => {
+                              const img = sceneImages.find((image) => image.image_number === idx);
+
+                              if (img) {
+                                return (
+                                  <div key={img.id} className="relative group aspect-video rounded-lg overflow-hidden border border-gray-200 bg-white shadow-sm">
+                                    <img
+                                      src={img.image_url}
+                                      alt={`Scene ${scene.sceneNumber} Visual ${idx + 1}`}
+                                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                      <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
+                                        <span className="text-[10px] text-white/90 font-medium bg-black/40 px-1.5 py-0.5 rounded-full">
+                                          Img {idx + 1}
+                                        </span>
+                                        <a
+                                          href={img.image_url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="inline-flex items-center gap-1 text-[10px] text-white bg-black/60 hover:bg-white hover:text-black px-2 py-1 rounded-full border border-white/20 transition-colors"
+                                        >
+                                          <FaExternalLinkAlt className="text-[8px]" />
+                                          <span>View</span>
+                                        </a>
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              } else {
+                                return (
+                                  <div key={`pending-${idx}`} className="relative aspect-video rounded-lg overflow-hidden border border-dashed border-orange-200 bg-orange-50/5 flex flex-col items-center justify-center p-2 text-center">
+                                    <FaImage className="text-lg text-orange-300 animate-pulse mb-1" />
+                                    <span className="text-[10px] text-orange-500 font-semibold mb-0.5">
+                                      Image {idx + 1}
+                                    </span>
+                                    <span className="text-[9px] text-stone-400">
+                                      Pending Generation
+                                    </span>
+                                  </div>
+                                );
+                              }
+                            })}
+                          </div>
+                        ) : sceneImages.length === 0 ? (
+                          <div className="text-center py-4 border border-dashed border-gray-200 rounded-xl bg-white text-xs text-stone-400">
+                            No images generated for this scene yet
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            {sceneImages.map((img, idx) => (
+                              <div key={img.id} className="relative group aspect-video rounded-lg overflow-hidden border border-gray-200 bg-white shadow-sm">
+                                <img
+                                  src={img.image_url}
+                                  alt={`Scene ${scene.sceneNumber} Visual ${idx + 1}`}
+                                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                  <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
+                                    <span className="text-[10px] text-white/90 font-medium bg-black/40 px-1.5 py-0.5 rounded-full">
+                                      Img {img.image_number + 1}
+                                    </span>
+                                    <a
+                                      href={img.image_url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center gap-1 text-[10px] text-white bg-black/60 hover:bg-white hover:text-black px-2 py-1 rounded-full border border-white/20 transition-colors"
+                                    >
+                                      <FaExternalLinkAlt className="text-[8px]" />
+                                      <span>View</span>
+                                    </a>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -375,13 +442,16 @@ export default function StoryAccordionWrapper({
             iconColor="text-violet-600"
             defaultOpen={false}
             headerActions={
-              <GenerateAllSceneFramesButton storyId={story.id} />
+              <GenerateAllSceneFramesButton storyId={story.id} isEnabled={allImagesGenerated} />
             }
             badge={`${scenesWithVideoFrames}/${totalScenes}`}
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {scriptScenes.map((scene) => {
                 const videoFrame = videoFramesByScene.get(scene.sceneNumber);
+                const sceneImages = images.filter((img) => img.scene_number === scene.sceneNumber);
+                const expectedSceneImages = scene.image_setup?.length || 0;
+                const isSceneImagesComplete = expectedSceneImages === 0 || sceneImages.length >= expectedSceneImages;
 
                 return (
                   <div
@@ -430,6 +500,7 @@ export default function StoryAccordionWrapper({
                             storyId={story.id}
                             sceneNumber={scene.sceneNumber}
                             sceneTitle={scene.title}
+                            isEnabled={isSceneImagesComplete}
                           />
                         </div>
                       )}

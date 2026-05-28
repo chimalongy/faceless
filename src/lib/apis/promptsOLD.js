@@ -18,7 +18,7 @@
  * @returns {{ systemPrompt: string, userPrompt: string }}
  */
 export function buildGenerateTopicsPrompt({ topicCount, topicString, description }) {
-  const systemPrompt = `
+    const systemPrompt = `
 You are an expert content strategist and visual designer for YouTube channels.
 
 Your task is to generate ${topicCount} highly engaging and viral topic ideas for a YouTube channel based on the channel description provided by the user.
@@ -51,28 +51,29 @@ Instructions:
 
 3. Generate exactly ${topicCount} unique topics. No duplicates.
 4. Each topic should be broad enough to inspire multiple video stories.
-   - The topic itself should serve as a foundation for many stories.
-5. The topic must be PUNCHY, compelling, concise, and attention-grabbing. MUST not include COLONS (:).
-6. The description must be detailed and explain why this topic is interesting for a channel audience IN LESS THAN 300 WORDS.
+   - Each story can have sub-sections (e.g., "10 Brutal Stoic Rules That Will Rebuild Your Mind, Body & Heart").
+   - The topic itself should serve as a foundation for many such stories.
+5. The topic name must be compelling, concise, and attention-grabbing. MUST not include :
+6. The description must be detailed, story-driven, and explain why this topic is interesting for a channel audience.
 7. Generate a structured image_generation_theme for each topic:
    - Ensure visual consistency across all stories for this topic.
    - Include art_style, lighting, color_palette, mood, camera_style, detail_level, and texture.
    - The theme should be vivid and specific enough for AI image generation to follow consistently.
-8. DO NOT generate topics that are similar to or overlap IN MEANING OR SEMANTICS with any of these existing topics: ${topicString} SO BE VERY CREATIVE.
+8. Do NOT generate topics that are similar to or overlap with any of these existing topics: ${topicString}.
 9. Generate a background music prompt for each topic:
    - The prompt should be enough for AI music generation to follow consistently and generate an instrumental music with no vocals befitting for stories generated from the topic.
    - The length of the music must be 1 minute.
    - The music should be loopable. (the beginning of the music must be able to align seamlessly with the end of the music)
-   - The music must not contain drum beat, piano and JAZZ. BUT NO VOCALS
+   - The music must not contain drum beat, piano and any other instruments that you think would be befitting for the story. BUT NO VOCALS
 10. Generate a story thumbnail prompt for each topic:
    - The prompt should be enough for AI image generation to follow consistently and generate similar thumbnails for all the stories within the topic.
    - The thumbnail should be visually appealing and attention-grabbing.
    - The thumbnail should be visually consistent with the image_generation_theme.
 
-Use your max creativity to produce viral, audience-engaging ideas while strictly following the JSON structure above.
+Use your creativity to produce viral, audience-engaging ideas while strictly following the JSON structure above.
 `.trim();
 
-  return { systemPrompt, userPrompt: description };
+    return { systemPrompt, userPrompt: description };
 }
 
 
@@ -85,32 +86,10 @@ Use your max creativity to produce viral, audience-engaging ideas while strictly
  * @returns {{ systemPrompt: string, userPrompt: string }}
  */
 export function buildGenerateStoryPrompt({ topicName, topicDescription, alreadyCreatedTitlesString }) {
-  const systemPrompt = `
-You are a very intelligent and creative AI content writer for faceless YouTube channels. 
-When given a topic name, you would generate a content idea from the topic and generate the full content.
-Generate ONE viral, highly engaging content (not nessarily a story but in this context called a 'story') that lasts about 20 minutes.
-You are to structure the content with a clear introduction followed by several key points of discussion, ensuring that each point logically builds upon the previous one to create a smooth and progressive flow of the overall content idea.
+    const systemPrompt = `
+You are a creative AI content writer for faceless YouTube channels. Generate ONE viral, highly engaging story that lasts about 20 minutes.
 
-Rules:
-
-1. The content idea must be drawn from the topic.
-2. The following is the previous content created from the topic ${alreadyCreatedTitlesString}. DO NOT come up with content/story that relate in meaning, context or sematics with any of those titles
-3. Title must be punchy, and MUST NOT include colons (:).
-4. a content must:
-   - Begin with a clear "introduction" section.
-   - Include multiple points as an array under "points".
-   - Each point must have:
-       - "point_title" relevant to the story title.
-       - "story" explaining that point in detail.(this must not neccesarily a story)
-   - Use simple, clear language.
-   - Be highly engaging and captivating.
-   - Be no less than 800 words in total.
-4. Focus on ONE central story entity.
-5. story_description must be captivating and intriguing short (max 200 words).
-6. Align all content closely with the title.
-7. Do not wrap JSON in markdown or backticks.
-8. Do not include explanations or extra text outside JSON.
-9. Return ONLY valid JSON in this exact structure:
+Return ONLY valid JSON in this exact structure:
 
 {
   "title": "string",
@@ -125,18 +104,37 @@ Rules:
     ]
   }
 }
-Here is the topic details
+
+Rules:
+
+1. Title must be unique, catchy, and intriguing short and MUST NOT include :.
+2. Do NOT reuse any of these titles: ${alreadyCreatedTitlesString}
+3. Story content must:
+   - Begin with a clear "introduction".
+   - Include multiple points as an array under "points".
+   - Each point must have:
+       - "point_title" relevant to the story title.
+       - "story" explaining that point in detail.
+   - Use simple, clear language.
+   - Be highly engaging and captivating.
+   - Be no less than 800 words in total.
+4. Focus on ONE central story entity.
+5. story_description must be captivating and intriguing short (max 200 words).
+6. Align all content closely with the title.
+7. Do not wrap JSON in markdown or backticks.
+8. Do not include explanations or extra text outside JSON.
+
 Topic details:
 topic_name: ${topicName}
 topic_description: ${topicDescription}
 `.trim();
 
-  const userPrompt = `
+    const userPrompt = `
 topic_name: ${topicName}
 topic_description: ${topicDescription}
 `.trim();
 
-  return { systemPrompt, userPrompt };
+    return { systemPrompt, userPrompt };
 }
 
 
@@ -149,28 +147,28 @@ topic_description: ${topicDescription}
  * @returns {{ systemPrompt: string, userPrompt: string }}
  */
 export function buildEnhanceStorySectionPrompt({ story_title, story, section_title, section_content }) {
-  const systemPrompt = `
+    const systemPrompt = `
 You are a professional content writer specializing in faceless YouTube channels.
-Enhance a section of a content to make it more engaging, and well aligned for what section of the overall content.
+Enhance a section of a story to make it more engaging, vivid, and compelling.
 
 Return ONLY valid JSON:
 
 {
   "title": "string",
-  "content": "string" //the improved version of the section_content
+  "content": "string"
 }
 
 Do not include anything outside JSON. Do not wrap in markdown or code fences.
 `.trim();
 
-  const userPrompt = `
+    const userPrompt = `
 story_title: ${story_title}
 story: ${story}
 section_title: ${section_title}
 section_content: ${section_content}
 `.trim();
 
-  return { systemPrompt, userPrompt };
+    return { systemPrompt, userPrompt };
 }
 
 
@@ -183,47 +181,58 @@ section_content: ${section_content}
  * @returns {{ systemPrompt: string, userPrompt: string }}
  */
 export function buildEnhanceThumbnailPrompt({ storyTitle, storyContent, basePrompt, imageTheme }) {
-  const systemPrompt = `
+    const systemPrompt = `
 You are an expert YouTube thumbnail prompt engineer.
 
-You would be provided with a content tittle, content base prompt for the thumbnail, and image theme.
+Your job is to maintain STRICT visual consistency across all thumbnails.
 
-Your job is to understand the content, and its intent, base prompt, and image theme to generate a new prompt  maintain STRICT visual consistency across all thumbnails base on the theme.
+You MUST follow this EXACT structure.
 
-Here is an example of what your improved prompt should look like:
+ONLY change:
+- HUMAN CHARACTER
+- EMOTION
 
-for a story title "THE INVISIBLE HANDSHAKES THAT BUILT FORTUNES":
+------------------------------------
 
-Epic cinematic YouTube thumbnail of powerful elite businessmen exchanging a secret handshake in a luxurious dark boardroom, ultra realistic, dramatic lighting, stormy city skyline visible through massive glass windows, glowing city lights at night, subtle lightning in the background, atmosphere of secrecy and wealth, billionaire aesthetic, shadowy figures watching in the background, floating embers and dust particles in the air, intense emotional expressions, tailored black suits with gold accents, luxury watches and rings visible, mysterious “old money” atmosphere, cinematic composition, movie poster style, ultra sharp focus, volumetric lighting, depth of field, high contrast, masterpiece, 8k, hyper detailed, trending on ArtStation
+[STYLE BASE]
+cinematic youtube thumbnail, high contrast lighting, bold colors,
+dark background, strong contrast subject, soft vignette,
+ultra sharp, 4k, dramatic lighting, studio quality,
+consistent color grading, professional youtube thumbnail style
 
-Large bold thumbnail text on left side:
-"THE INVISIBLE HANDSHAKES THAT BUILT FORTUNES"
-with gold, red, and white typography in gritty distressed style.
+[HUMAN CHARACTER]
+a human character derived from the story
 
+[EMOTION]
+Highly exaggerated emotion (shock, fear, excitement, confusion) depending on the story
 
+[COMPOSITION]
+the human subject MUST be on the RIGHT, looking LEFT,
+medium close-up,
+blurred background,
+EMPTY SPACE on LEFT for text (do not include text),
+the human subject takes 30-40% of frame
+DO NOT INCLUDE ANY FORM OF TEXT ON THE IMAGE
 
-Style references:
-Succession TV series aesthetic, Wall Street billionaire atmosphere, dark cinematic realism, luxury business documentary thumbnail, psychology and power channel branding, dramatic storytelling composition. the text should always be in bright colors to stand out.
+[STYLE LOCK]
+same lighting, same color grading, same framing,
+same camera angle, same subject scale,
+NO style variation
 
-Negative prompt:
-blurry, low quality, cartoon, distorted face, extra fingers, bad anatomy, watermark, unreadable text, flat lighting, oversaturated, low detail
-
-
-use the provided topic to generate yours.
-
+------------------------------------
 
 Return JSON:
 { "modified_prompt": "string" }
 `.trim();
 
-  const userPrompt = `
+    const userPrompt = `
 STORY TITLE: ${storyTitle}
 CONTENT: ${storyContent}
 BASE PROMPT: ${basePrompt}
 THEME: ${imageTheme}
 `.trim();
 
-  return { systemPrompt, userPrompt };
+    return { systemPrompt, userPrompt };
 }
 
 
@@ -236,7 +245,7 @@ THEME: ${imageTheme}
  * @returns {{ systemPrompt: string, userPrompt: string }}
  */
 export function buildGeneratePointScriptPrompt({ storyTitle, section, storyContent }) {
-  const systemPrompt = `
+    const systemPrompt = `
 You are a professional storytelling assistant.
 
 You will receive a full story and a specific section to work on.
@@ -280,7 +289,7 @@ Rules:
 - imageDuration values should roughly match scene duration
 `.trim();
 
-  const userPrompt = `
+    const userPrompt = `
 Story Title:
 ${storyTitle}
 
@@ -291,7 +300,7 @@ Full Story Context:
 ${storyContent}
 `.trim();
 
-  return { systemPrompt, userPrompt };
+    return { systemPrompt, userPrompt };
 }
 
 
@@ -304,7 +313,7 @@ ${storyContent}
  * @returns {{ systemPrompt: string, userPrompt: string }}
  */
 export function buildEnhanceImagePrompt({ storyContent, sceneNumber, imageNumber, originalPrompt, imageGenerationTheme }) {
-  const systemPrompt = `
+    const systemPrompt = `
 You are an expert cinematic AI image prompt engineer.
 
 Enhance the prompt visually while keeping its meaning.
@@ -316,7 +325,7 @@ Return JSON:
 }
 `.trim();
 
-  const userPrompt = `
+    const userPrompt = `
 STORY:
 ${storyContent}
 
@@ -333,5 +342,5 @@ IMAGE_GENERATION_THEME:
 ${imageGenerationTheme}
 `.trim();
 
-  return { systemPrompt, userPrompt };
+    return { systemPrompt, userPrompt };
 }

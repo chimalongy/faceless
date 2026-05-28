@@ -16,7 +16,9 @@ export async function createChannel(formData) {
 
   const name = formData.get('name');
   const description = formData.get('description');
-  const channel_type = formData.get('channel_type')
+  const channel_type = formData.get('channel_type');
+  const content_theme = formData.get('content_theme');
+  const narrator_voice = formData.get('narrator_voice'); // ← add this
 
   if (!name) throw new Error('Name is required');
 
@@ -25,6 +27,8 @@ export async function createChannel(formData) {
     name,
     description,
     channel_type,
+    content_theme,
+    narrator_voice, // ← add this
   });
 
   if (error) {

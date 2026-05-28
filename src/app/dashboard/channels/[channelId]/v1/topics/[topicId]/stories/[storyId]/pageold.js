@@ -31,7 +31,6 @@ import GenerateSceneAudioButton from '../../../../../../../../../components/stor
 import SceneAudioPlayer from '../../../../../../../../../components/stories/SceneAudioPlayer';
 import SceneAudioCard from '../../../../../../../../../components/stories/SceneAudioCard';
 import GenerateAllImagesButton from '../../../../../../../../../components/stories/GenerateAllImagesButton';
-import VisualAssetsControls from '../../../../../../../../../components/stories/VisualAssetsControls';
 import GenerateAllSceneFramesButton from '../../../../../../../../../components/stories/GenerateAllSceneFramesButton';
 import GenerateSceneFrameVideoButton from '../../../../../../../../../components/stories/GenerateSceneFrameVideoButton';
 import MergeVideosButton from '../../../../../../../../../components/stories/MergeVideosButton';
@@ -353,7 +352,7 @@ export default async function StoryDetailPage({ params }) {
                 borderTopColor="from-blue-500 to-indigo-500"
                 cardClassName="relative overflow-hidden rounded-2xl bg-white border border-gray-200 shadow-sm"
                 headerActions={
-                  <VisualAssetsControls storyId={story.id} />
+                  <GenerateAllImagesButton storyId={story.id} />
                 }
                 maxHeight={MAX_SECTION_HEIGHT}
               >
@@ -363,13 +362,9 @@ export default async function StoryDetailPage({ params }) {
                       <HiPhoto className="text-3xl text-blue-500" />
                     </div>
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">No Images Yet</h3>
-                    <p className="text-gray-500 text-sm mb-6 max-w-xs mx-auto">
-                      Add images to enhance your story visualization
+                    <p className="text-gray-500 text-sm mb-2 max-w-xs mx-auto">
+                      Generate images to enhance your story visualization
                     </p>
-                    <button className="group inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-blue-500/25 transition-all">
-                      <FaImage className="group-hover:scale-110 transition-transform" />
-                      <span>Upload Images</span>
-                    </button>
                   </div>
                 ) : (
                   <div className="space-y-6">
@@ -403,12 +398,6 @@ export default async function StoryDetailPage({ params }) {
                       ))}
                     </div>
 
-                    <div className="pt-4 border-t border-gray-100">
-                      <button className="group w-full inline-flex items-center justify-center gap-3 px-6 py-3.5 bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-blue-500/25 transition-all">
-                        <FaUpload className="group-hover:scale-110 transition-transform" />
-                        <span>Add More Images</span>
-                      </button>
-                    </div>
                   </div>
                 )}
               </CollapsibleSection>
