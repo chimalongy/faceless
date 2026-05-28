@@ -9,7 +9,7 @@ export default function UploadToYoutubeButton({ storyId }) {
 
   const handleUpload = async () => {
     setLoading(true);
-    const t = toast.loading('Uploading to YouTube…');
+    const t = toast.loading('Sending video to PostersHive...');
 
     try {
       const res = await fetch('/api/generate/upload-to-youtube', {
@@ -24,14 +24,7 @@ export default function UploadToYoutubeButton({ storyId }) {
         throw new Error(data.error || 'Failed to start upload');
       }
 
-      // Check if OAuth is required before proceeding
-      if (data.requiresAuth) {
-        toast.loading('Redirecting to YouTube Authorization...', { id: t });
-        window.location.href = data.authUrl;
-        return;
-      }
-
-      toast.success('🎥 YouTube upload complete!', { id: t });
+      toast.success('🚀 Video queued for posting!', { id: t });
     } catch (err) {
       console.error('YouTube upload error:', err);
       toast.error(err.message || 'Failed to start YouTube upload', { id: t });
@@ -51,7 +44,7 @@ export default function UploadToYoutubeButton({ storyId }) {
       ) : (
         <FaYoutube className="text-xl group-hover:scale-110 transition-transform" />
       )}
-      <span>{loading ? 'Queuing…' : 'Upload to YouTube'}</span>
+      <span>{loading ? 'Queueing…' : 'Upload to YouTube'}</span>
     </button>
   );
 }

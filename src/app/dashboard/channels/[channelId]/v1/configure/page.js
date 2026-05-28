@@ -55,7 +55,7 @@ export default async function ChannelConfigurePage({ params }) {
             Channel Settings
           </h1>
           <p className="text-lg text-gray-500 max-w-2xl">
-            Configure integration keys and API credentials for <span className="text-orange-600 font-semibold">{channel.name}</span>. These settings are used for background tasks like video distribution.
+            Configure integration keys and API credentials for <span className="text-orange-600 font-semibold">{channel.name}</span>. These settings are used for background tasks like distributing and auto-posting your videos to YouTube via PostersHive.
           </p>
         </div>
 

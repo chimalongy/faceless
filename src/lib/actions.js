@@ -937,3 +937,46 @@ export async function deleteStoryBackgroundMusic(formData) {
 
   revalidatePath(`/dashboard/channels/${story.channel_id}/v1/topics/${story.topic_id}/stories/${storyId}/background-music`);
 }
+
+export async function testPostersHiveConnection(apiKey) {
+  const userId = await getSessionCookie();
+  if (!userId) throw new Error('Unauthorized');
+
+  if (!apiKey) {
+    throw new Error('API key is required');
+  }
+
+  try {
+    const response = await fetch('https://postershive.vercel.app/api/test-connection', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+      },
+    });
+
+    const result = await response.json();
+    console.log('PostersHive test result:', result);
+
+    if (response.status === 200 && result.connected) {
+      const platforms = result.account?.connectedPlatforms || [];
+      const hasYoutube = platforms.some(p => p.toLowerCase() === 'youtube');
+
+      if (!hasYoutube) {
+        return {
+          success: false,
+          error: 'Connection was successful, but you must connect your YouTube channel in PostersHive first.'
+        };
+      }
+
+      return { success: true, message: result.message || 'Connection successful!' };
+    } else {
+      return {
+        success: false,
+        error: result.error || `Unauthorized: Invalid API Key (Status ${response.status})`
+      };
+    }
+  } catch (err) {
+    console.error('PostersHive test connection error:', err);
+    return { success: false, error: 'Could not connect to PostersHive server. Please check your network and API key.' };
+  }
+}

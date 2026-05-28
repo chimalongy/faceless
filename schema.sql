@@ -66,6 +66,7 @@ create table public.stories (
   completd_video_url text null,
   thumbnail_url text null,
   upload_path text null,
+  post_status text null default 'false',
   constraint stories_pkey primary key (id),
   constraint stories_channel_id_fkey foreign KEY (channel_id) references channels (id) on delete CASCADE,
   constraint stories_topic_id_fkey foreign KEY (topic_id) references topics (id) on delete CASCADE,
