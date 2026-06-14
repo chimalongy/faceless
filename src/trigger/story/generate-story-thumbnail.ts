@@ -5,11 +5,7 @@ import axios from "axios";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { supabase } from "../../lib/supabase";
 import { r2 } from "../../lib/r2";
-import { getImageGenerationUrls } from "../../lib/apis/getapis.js";
-import * as fs from "fs";
-import * as path from "path";
-import { fileURLToPath } from "url";
-import TextToSVG from "text-to-svg";
+
 
 const MODAL_ENDPOINT =
   "https://geniusdomainnames--microsoft-lens-generate-endpoint.modal.run";

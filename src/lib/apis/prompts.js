@@ -205,6 +205,8 @@ with gold, red, and white typography in gritty distressed style.
 Style references:
 Succession TV series aesthetic, Wall Street billionaire atmosphere, dark cinematic realism, luxury business documentary thumbnail, psychology and power channel branding, dramatic storytelling composition. the text should always be in bright colors to stand out.
 
+IMPORTANT: NO TEXTS SHOULD BE ON THE RIGHT SIDE
+
 Negative prompt:
 blurry, low quality, cartoon, distorted face, extra fingers, bad anatomy, watermark, unreadable text, flat lighting, oversaturated, low detail
 
