@@ -40,7 +40,7 @@ export const mixBackgroundMusicTask = task({
 
         const { data: topic, error: topicError } = await supabase
             .from("topics")
-            .select("background_music_url")
+            .select("background_music_url, background_music_volume")
             .eq("id", topicId)
             .single();
 
@@ -49,7 +49,9 @@ export const mixBackgroundMusicTask = task({
         }
 
         const backgroundMusicUrl = topic.background_music_url;
-        logger.info(backgroundMusicUrl);
+        // Use topic volume (0.0–1.0), default to 0.2 (20%) if not set
+        const musicVolume = (topic.background_music_volume != null) ? topic.background_music_volume : 0.2;
+        logger.info(`Background music URL: ${backgroundMusicUrl}, volume weight: ${musicVolume}`);
 
         if (backgroundMusicUrl == null) {
             logger.log("No background music set for this topic, skipping mix.", { storyId, topicId });
@@ -84,7 +86,7 @@ export const mixBackgroundMusicTask = task({
                     .input(musicPath)
                     .complexFilter([
                         "[1:a]aloop=loop=-1:size=2e+09[looped]",
-                        "[0:a][looped]amix=inputs=2:duration=first:weights=1 0.25[aout]",
+                        `[0:a][looped]amix=inputs=2:duration=first:weights=1 ${musicVolume}[aout]`,
                     ])
                     .outputOptions([
                         "-map 0:v",

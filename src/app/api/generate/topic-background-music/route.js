@@ -18,7 +18,8 @@ export async function POST(request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { topicId } = await request.json();
+    const body = await request.json();
+    const { topicId, music_length: bodyMusicLength } = body;
 
     if (!topicId) {
       return NextResponse.json(
@@ -55,7 +56,7 @@ export async function POST(request) {
     const handle = await tasks.trigger("generate-topic-background-music", {
       topic_id: topicId,
       music_prompt: background_music_prompt,
-      music_length: background_music_duration || 60, // Default to 60s if not set
+      music_length: bodyMusicLength || background_music_duration || 60,
     });
 
     console.log("🎵 Topic background music task triggered:", handle.id);

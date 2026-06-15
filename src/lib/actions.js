@@ -295,6 +295,62 @@ export async function getTopic(topicId) {
   return data;
 }
 
+export async function updateMusicPrompt(formData) {
+  const userId = await getSessionCookie();
+  if (!userId) throw new Error('Unauthorized');
+
+  const topicId = formData.get('topicId');
+  const channelId = formData.get('channelId');
+  const background_music_prompt = formData.get('background_music_prompt') || null;
+  const rawDuration = formData.get('background_music_duration');
+  const background_music_duration = rawDuration ? parseInt(rawDuration) : null;
+
+  if (!topicId) throw new Error('Topic ID is required');
+
+  const { error } = await supabase
+    .from('topics')
+    .update({ background_music_prompt, background_music_duration })
+    .eq('id', topicId)
+    .eq('user_id', userId);
+
+  if (error) {
+    console.error('Update music prompt error:', error);
+    throw new Error('Failed to update music prompt');
+  }
+
+  revalidatePath(`/dashboard/channels/${channelId}/v1/topics/${topicId}/background-music`);
+}
+
+export async function updateMusicVolume(formData) {
+  const userId = await getSessionCookie();
+  if (!userId) throw new Error('Unauthorized');
+
+  const topicId = formData.get('topicId');
+  const channelId = formData.get('channelId');
+  const rawVolume = formData.get('background_music_volume');
+
+  if (!topicId) throw new Error('Topic ID is required');
+
+  const background_music_volume = rawVolume !== null ? parseFloat(rawVolume) : 0.2;
+
+  if (isNaN(background_music_volume) || background_music_volume < 0 || background_music_volume > 1) {
+    throw new Error('Volume must be between 0 and 1');
+  }
+
+  const { error } = await supabase
+    .from('topics')
+    .update({ background_music_volume })
+    .eq('id', topicId)
+    .eq('user_id', userId);
+
+  if (error) {
+    console.error('Update music volume error:', error);
+    throw new Error('Failed to update music volume');
+  }
+
+  revalidatePath(`/dashboard/channels/${channelId}/v1/topics/${topicId}/background-music`);
+}
+
 export async function deleteTopic(formData) {
   const userId = await getSessionCookie();
   if (!userId) throw new Error('Unauthorized');
