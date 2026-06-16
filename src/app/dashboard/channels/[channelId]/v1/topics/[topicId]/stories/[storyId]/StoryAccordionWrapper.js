@@ -566,7 +566,7 @@ export default function StoryAccordionWrapper({
                   <FaVideo className="text-xs" />
                   Download Final Video
                 </a>
-                <UploadToYoutubeButton storyId={storyId} />
+                <UploadToYoutubeButton storyId={storyId} postStatus={story.post_status} />
               </div>
             </div>
           </AccordionSection>

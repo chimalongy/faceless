@@ -2,13 +2,21 @@ import { task, logger } from "@trigger.dev/sdk/v3";
 import { supabase } from "../../lib/supabase.js";
 import axios from "axios";
 
+const POSTERSHIVE_PUBLISH_URL = "https://postershive.vercel.app/api/publish";
+
 export const publishToPostersHiveTask = task({
   id: "publish-to-postershive",
 
   run: async (payload) => {
-    const { storyId } = payload;
+    const { storyId, scheduled_at } = payload;
 
-    logger.info("Starting PostersHive publishing task", { storyId });
+    const isScheduled = !!scheduled_at;
+
+    logger.info("Starting PostersHive publishing task", {
+      storyId,
+      scheduled_at: scheduled_at ?? "(immediate)",
+      isScheduled,
+    });
 
     // 1. Fetch story and channel details
     const { data: story, error: storyError } = await supabase
@@ -34,6 +42,7 @@ export const publishToPostersHiveTask = task({
       throw new Error(`Video URL not found for story ${storyId}`);
     }
 
+    // 3. Build PostersHive payload
     const payloadBody = {
       platform: "youtube",
       post_title: story.title,
@@ -42,17 +51,19 @@ export const publishToPostersHiveTask = task({
       thumbnail_url: story.thumbnail_url || "",
     };
 
-    logger.info(payloadBody)
-    console.log(payloadBody)
+    // Only include scheduled_at when a future date was provided
+    if (isScheduled) {
+      payloadBody.scheduled_at = scheduled_at;
+    }
 
     logger.info("Sending publish request to PostersHive", {
-      url: "https://postershive.vercel.app/api/publish",
-      payloadBody
+      url: POSTERSHIVE_PUBLISH_URL,
+      payloadBody,
     });
 
-    const response = await axios.post("https://postershive.vercel.app/api/publish", payloadBody, {
+    const response = await axios.post(POSTERSHIVE_PUBLISH_URL, payloadBody, {
       headers: {
-        "Authorization": `Bearer ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       timeout: 60000,
@@ -60,13 +71,16 @@ export const publishToPostersHiveTask = task({
 
     logger.info("PostersHive response received", {
       status: response.status,
-      data: response.data
+      data: response.data,
     });
 
-    // 3. Set post_status = 'true' in DB on success
+    // 4. Update post_status in DB
+    //    "scheduled" when a future time was sent, "true" for immediate publish
+    const newPostStatus = isScheduled ? "scheduled" : "true";
+
     const { error: updateError } = await supabase
       .from("stories")
-      .update({ post_status: "true" })
+      .update({ post_status: newPostStatus })
       .eq("id", storyId);
 
     if (updateError) {
@@ -74,10 +88,17 @@ export const publishToPostersHiveTask = task({
       throw updateError;
     }
 
-    logger.info("Database post_status updated to true");
+    logger.info(`Database post_status updated to "${newPostStatus}"`, {
+      storyId,
+      isScheduled,
+      scheduled_at: scheduled_at ?? null,
+    });
 
     return {
       success: true,
+      storyId,
+      postStatus: newPostStatus,
+      scheduled_at: scheduled_at ?? null,
       data: response.data,
     };
   },
