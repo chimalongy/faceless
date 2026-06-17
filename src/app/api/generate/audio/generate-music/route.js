@@ -1,16 +1,11 @@
 import { NextResponse } from "next/server";
-import { tasks, configure } from "@trigger.dev/sdk/v3";
+import { tasks } from "@trigger.dev/sdk/v3";
+import { configureTrigger } from "../../../../../lib/triggerConfig";
 import { getSessionCookie } from "../../../../../lib/auth";
-
-// Configure Trigger
-if (process.env.TRIGGER_SECRET_KEY) {
-  configure({
-    secretKey: process.env.TRIGGER_SECRET_KEY,
-  });
-}
 
 export async function POST(request) {
   try {
+    await configureTrigger();
     const userId = await getSessionCookie();
 
     if (!userId) {

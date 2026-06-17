@@ -8,7 +8,8 @@ export const generateImagesTask = task({
   run: async (payload) => {
     const { storyId } = payload;
 
-    logger.info("Starting image generation dispatcher", { storyId });
+    try {
+      logger.info("Starting image generation dispatcher", { storyId });
     
     // Fetch story
     const { data: story, error } = await supabase
@@ -50,9 +51,15 @@ export const generateImagesTask = task({
   });
 }
 
-    return {
-      success: true,
-      scenesTriggered: scenes.length,
-    };
+      return {
+        success: true,
+        scenesTriggered: scenes.length,
+      };
+    } finally {
+      await supabase
+        .from("stories")
+        .update({ is_image_generating: false })
+        .eq("id", storyId);
+    }
   },
 });

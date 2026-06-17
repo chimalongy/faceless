@@ -1,16 +1,12 @@
 import { NextResponse } from "next/server";
-import { tasks, configure } from "@trigger.dev/sdk/v3";
+import { tasks } from "@trigger.dev/sdk/v3";
+import { supabase } from "../../../../../lib/supabase";
+import { configureTrigger } from "../../../../../lib/triggerConfig";
 import { getSessionCookie } from "../../../../../lib/auth";
-
-// Configure trigger.dev
-if (process.env.TRIGGER_SECRET_KEY) {
-  configure({
-    secretKey: process.env.TRIGGER_SECRET_KEY,
-  });
-}
 
 export async function POST(request) {
   try {
+    await configureTrigger();
     const userId = await getSessionCookie();
 
     if (!userId) {
@@ -29,6 +25,13 @@ export async function POST(request) {
         { status: 400 }
       );
     }
+
+    // Set generating status to true in database
+    await supabase
+      .from("stories")
+      .update({ is_audio_generating: true })
+      .eq("id", storyId)
+      .eq("user_id", userId);
 
     // 🔥 Trigger background task
     const handle = await tasks.trigger("generate-scene-audio", {

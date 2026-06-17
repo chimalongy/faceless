@@ -10,10 +10,11 @@ export const generateSceneAudioTask = task({
             sceneNumber,
         } = payload;
 
-        logger.info("🎙️ Starting scene audio generation", {
-            storyId,
-            sceneNumber: sceneNumber ?? "ALL",
-        });
+        try {
+            logger.info("🎙️ Starting scene audio generation", {
+                storyId,
+                sceneNumber: sceneNumber ?? "ALL",
+            });
 
         // 🔹 Fetch story
         const { data: story, error: storyError } = await supabase
@@ -155,11 +156,17 @@ export const generateSceneAudioTask = task({
             totalProcessed: storedAudioUrls.length,
         });
 
-        return {
-            success: true,
-            storyId,
-            processedScenes: storedAudioUrls.length,
-            specificScene: sceneNumber ?? null,
-        };
+            return {
+                success: true,
+                storyId,
+                processedScenes: storedAudioUrls.length,
+                specificScene: sceneNumber ?? null,
+            };
+        } finally {
+            await supabase
+                .from("stories")
+                .update({ is_audio_generating: false })
+                .eq("id", storyId);
+        }
     },
 });

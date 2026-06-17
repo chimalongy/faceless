@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   FaArrowLeft,
@@ -136,18 +136,50 @@ export default function StoryAccordionWrapper({
   channelId,
   topicId,
   storyId,
-  story,
-  images,
-  audioFiles,
-  videoFrames,
+  story: initialStory,
+  images: initialImages,
+  audioFiles: initialAudioFiles,
+  videoFrames: initialVideoFrames,
   scriptScenes,
   totalScenes,
-  scenesWithAudio,
-  scenesWithVideoFrames,
-  scenesWithImages,
+  scenesWithAudio: initialScenesWithAudio,
+  scenesWithVideoFrames: initialScenesWithVideoFrames,
+  scenesWithImages: initialScenesWithImages,
   voices,
   wordCount,
 }) {
+  const [currentStory, setCurrentStory] = useState(initialStory);
+  const [currentImages, setCurrentImages] = useState(initialImages);
+  const [currentAudioFiles, setCurrentAudioFiles] = useState(initialAudioFiles);
+  const [currentVideoFrames, setCurrentVideoFrames] = useState(initialVideoFrames);
+
+  const story = currentStory;
+  const images = currentImages;
+  const audioFiles = currentAudioFiles;
+  const videoFrames = currentVideoFrames;
+
+  // Set up the polling interval to ping the db for updates
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/stories/${storyId}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.story) {
+            setCurrentStory(data.story);
+            setCurrentImages(data.story.story_images || []);
+            setCurrentAudioFiles(data.story.story_audio || []);
+            setCurrentVideoFrames(data.story.story_video_frames || []);
+          }
+        }
+      } catch (err) {
+        console.error("Error polling story updates:", err);
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [storyId]);
+
   // Create maps for quick lookup
   const audioByScene = new Map();
   audioFiles.forEach((audio) => {
@@ -169,6 +201,28 @@ export default function StoryAccordionWrapper({
     totalExpectedImages += scene.image_setup?.length || 0;
   });
   const allImagesGenerated = totalExpectedImages > 0 && images.length >= totalExpectedImages;
+
+  // Shadow props with reactive calculations
+  const scenesWithAudio = audioByScene.size;
+  const scenesWithVideoFrames = videoFramesByScene.size;
+
+  let scenesWithImages = 0;
+  try {
+    if (story.generated_script) {
+      const scriptData = JSON.parse(story.generated_script);
+      if (scriptData?.scenes && Array.isArray(scriptData.scenes)) {
+        scenesWithImages = scriptData.scenes.filter(
+          (scene) => {
+            const sceneImages = images.filter((img) => img.scene_number === scene.sceneNumber);
+            const expectedSceneImages = scene.image_setup?.length || 0;
+            return expectedSceneImages > 0 && sceneImages.length >= expectedSceneImages;
+          }
+        ).length;
+      }
+    }
+  } catch (err) {
+    // stays 0
+  }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -265,6 +319,7 @@ export default function StoryAccordionWrapper({
                 variant="primary"
                 label="Generate All"
                 voices={voices || []}
+                disabled={story.is_audio_generating}
               />
             }
             badge={`${scenesWithAudio}/${totalScenes}`}
@@ -303,7 +358,7 @@ export default function StoryAccordionWrapper({
             iconColor="text-blue-600"
             defaultOpen={false}
             headerActions={
-              <GenerateAllImagesButton storyId={story.id} />
+              <GenerateAllImagesButton storyId={story.id} disabled={story.is_image_generating} />
             }
             badge={`${images.length}`}
           >

@@ -6,6 +6,7 @@ import {
     buildEnhanceThumbnailPrompt,
     buildGeneratePointScriptPrompt,
     buildEnhanceImagePrompt,
+    buildSlideConfigurationPrompt,
 } from "./prompts.js";
 import { getLLMAPIs } from "./getapis.js";
 
@@ -266,5 +267,21 @@ export async function llmGeneratePointScript({ storyTitle, section, storyContent
  */
 export async function llmEnhanceImagePrompt({ storyContent, sceneNumber, imageNumber, originalPrompt, imageGenerationTheme }) {
     const { systemPrompt, userPrompt } = buildEnhanceImagePrompt({ storyContent, sceneNumber, imageNumber, originalPrompt, imageGenerationTheme });
+    return callLLM(systemPrompt, userPrompt);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 7. Get Slide Configuration
+//    Used by: src/lib/utils/getSlideConfiguration.js
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * @param {{ scene: object, scene_number: number, scene_images: object[], scene_audio_url: string, scene_audio_duration: number, ass_content: string }} params
+ * @returns {Promise<{ slides: object[], ass_duration: number }>}
+ */
+export async function llmGetSlideConfiguration({ scene, scene_number, scene_images, scene_audio_url, scene_audio_duration, ass_content }) {
+    const { systemPrompt, userPrompt } = buildSlideConfigurationPrompt({
+        scene, scene_number, scene_images, scene_audio_url, scene_audio_duration, ass_content,
+    });
     return callLLM(systemPrompt, userPrompt);
 }

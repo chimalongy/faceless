@@ -4,8 +4,11 @@ import fs from "fs";
 import path from "path";
 import { execSync } from "child_process";
 import axios from "axios";
+import { FFMPEG_PATH } from "../../lib/utils/ffmpeg-helper.js";
 
 const BUCKET = process.env.SUPABASE_BUCKET;
+
+const FFMPEG = FFMPEG_PATH;
 
 // ─────────────────────────────────────────────
 // Temp dir
@@ -274,7 +277,7 @@ async function renderSlideClip(slide, index, fps, jobId) {
     if (fadeFilter) vf += `,${fadeFilter}`;
 
     const cmd = [
-        `ffmpeg -y`,
+        `"${FFMPEG}" -y`,
         `-loop 1 -i "${imgPath}"`,
         `-t ${duration}`,
         `-vf "${vf}"`,
@@ -338,7 +341,7 @@ export const renderVideo = task({
             fs.writeFileSync(concatListPath, concatContent);
 
             execSync(
-                `ffmpeg -y -f concat -safe 0 -i "${concatListPath}" -c copy "${silentVideoPath}"`,
+                `"${FFMPEG}" -y -f concat -safe 0 -i "${concatListPath}" -c copy "${silentVideoPath}"`,
                 { stdio: "pipe" }
             );
 
@@ -364,10 +367,10 @@ export const renderVideo = task({
                         fs.writeFileSync(srtPath, srtContent);
 
                         const subtitledPath = tempFile(`${jobId}_subtitled.mp4`);
-                        const srtEscaped = srtPath.replace(/'/g, "\\'").replace(/:/g, "\\:");
+                        const srtEscaped = srtPath.replace(/\\/g, "/").replace(/'/g, "\\'").replace(/:/g, "\\:");
 
                         execSync(
-                            `ffmpeg -y -i "${silentVideoPath}" ` +
+                            `"${FFMPEG}" -y -i "${silentVideoPath}" ` +
                             `-vf "subtitles='${srtEscaped}':force_style='${SUBTITLE_STYLE}'" ` +
                             `-c:v libx264 -preset fast -pix_fmt yuv420p -an "${subtitledPath}"`,
                             { stdio: "pipe" }
@@ -382,7 +385,7 @@ export const renderVideo = task({
                 const muxedPath = tempFile(`${jobId}_muxed.mp4`);
 
                 execSync(
-                    `ffmpeg -y -i "${videoBeforeAudio}" -i "${audioFilePath}" ` +
+                    `"${FFMPEG}" -y -i "${videoBeforeAudio}" -i "${audioFilePath}" ` +
                     `-c:v copy -c:a aac -b:a 192k -shortest "${muxedPath}"`,
                     { stdio: "pipe" }
                 );
@@ -399,10 +402,10 @@ export const renderVideo = task({
                     fs.writeFileSync(srtPath, srtContent);
 
                     const subtitledPath = tempFile(`${jobId}_subtitled.mp4`);
-                    const srtEscaped = srtPath.replace(/'/g, "\\'").replace(/:/g, "\\:");
+                    const srtEscaped = srtPath.replace(/\\/g, "/").replace(/'/g, "\\'").replace(/:/g, "\\:");
 
                     execSync(
-                        `ffmpeg -y -i "${silentVideoPath}" ` +
+                        `"${FFMPEG}" -y -i "${silentVideoPath}" ` +
                         `-vf "subtitles='${srtEscaped}':force_style='${SUBTITLE_STYLE}'" ` +
                         `-c:v libx264 -preset fast -pix_fmt yuv420p "${subtitledPath}"`,
                         { stdio: "pipe" }

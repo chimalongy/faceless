@@ -5,7 +5,7 @@ import { FaMagic } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 
-export default function GenerateAllImagesButton({ storyId }) {
+export default function GenerateAllImagesButton({ storyId, disabled }) {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -42,15 +42,17 @@ export default function GenerateAllImagesButton({ storyId }) {
     }
   };
 
+  const isCurrentlyDisabled = disabled || loading;
+
   return (
     <button
       type="button"
       onClick={handleGenerate}
-      disabled={loading}
+      disabled={isCurrentlyDisabled}
       className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-semibold text-sm rounded-xl hover:opacity-90 hover:-translate-y-px active:translate-y-0 transition-all shadow-md shadow-blue-500/20 disabled:opacity-70 disabled:cursor-not-allowed"
     >
       <FaMagic className="text-xs" />
-      <span>{loading ? 'Generating…' : 'Generate All'}</span>
+      <span>{isCurrentlyDisabled ? 'Generating…' : 'Generate All'}</span>
     </button>
   );
 }

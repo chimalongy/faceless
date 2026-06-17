@@ -5,7 +5,7 @@ import { FaMagic } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 
-export default function GenerateAudioButton({ storyId, variant = 'primary', label = 'Generate from Script' }) {
+export default function GenerateAudioButton({ storyId, variant = 'primary', label = 'Generate from Script', disabled }) {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -45,15 +45,17 @@ export default function GenerateAudioButton({ storyId, variant = 'primary', labe
       ? 'px-4 py-2 bg-gradient-to-r from-purple-500 to-fuchsia-500 text-white hover:opacity-90 hover:-translate-y-px active:translate-y-0 shadow-md shadow-purple-500/20'
       : 'px-5 py-2.5 bg-gradient-to-r from-purple-500 to-fuchsia-500 text-white hover:opacity-90 hover:-translate-y-px active:translate-y-0 shadow-md shadow-purple-500/20';
 
+  const isCurrentlyDisabled = disabled || loading;
+
   return (
     <button
       type="button"
       onClick={handleGenerate}
-      disabled={loading}
-      className={`${baseClasses} ${styles} ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+      disabled={isCurrentlyDisabled}
+      className={`${baseClasses} ${styles} ${isCurrentlyDisabled ? 'opacity-70 cursor-not-allowed' : ''}`}
     >
       <FaMagic className="text-xs" />
-      <span>{loading ? 'Generating…' : label}</span>
+      <span>{isCurrentlyDisabled ? 'Generating…' : label}</span>
     </button>
   );
 }

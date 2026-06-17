@@ -2,6 +2,10 @@ import { logger, task } from "@trigger.dev/sdk/v3";
 import { supabase } from "../../lib/supabase.js";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import ffmpeg from "fluent-ffmpeg";
+import { FFMPEG_PATH, FFPROBE_PATH } from "../../lib/utils/ffmpeg-helper.js";
+
+ffmpeg.setFfmpegPath(FFMPEG_PATH);
+ffmpeg.setFfprobePath(FFPROBE_PATH);
 import axios from "axios";
 import fs from "fs";
 import path from "path";

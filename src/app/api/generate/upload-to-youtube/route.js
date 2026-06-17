@@ -1,17 +1,12 @@
 import { NextResponse } from "next/server";
 import { getSessionCookie } from "../../../../lib/auth";
 import { supabase } from "../../../../lib/supabase";
-import { tasks, configure } from "@trigger.dev/sdk/v3";
-
-// Configure trigger.dev
-if (process.env.TRIGGER_SECRET_KEY) {
-  configure({
-    secretKey: process.env.TRIGGER_SECRET_KEY,
-  });
-}
+import { tasks } from "@trigger.dev/sdk/v3";
+import { configureTrigger } from "../../../../lib/triggerConfig";
 
 export async function POST(request) {
   try {
+    await configureTrigger();
     const userId = await getSessionCookie();
 
     if (!userId) {

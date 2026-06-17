@@ -337,3 +337,85 @@ ${imageGenerationTheme}
 
   return { systemPrompt, userPrompt };
 }
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 7. Slide Configuration for video frame rendering
+//    Used by: src/lib/utils/getSlideConfiguration.js
+// ─────────────────────────────────────────────────────────────────────────────
+
+const REMOTION_TRANSITIONS = [
+  "fade", "crossfade", "slide-left", "slide-right", "slide-up", "slide-down",
+  "zoom", "wipe", "fade-to-black", "fade-to-white",
+];
+
+const KEN_BURNS_DIRECTIONS = [
+  "zoom-in", "zoom-out", "pan-left", "pan-right", "pan-up", "pan-down",
+  "up-left", "up-right", "down-left", "down-right",
+];
+
+/**
+ * @param {{ scene: object, scene_number: number, scene_images: object[], scene_audio_url: string, scene_audio_duration: number, ass_content: string }} params
+ * @returns {{ systemPrompt: string, userPrompt: string }}
+ */
+export function buildSlideConfigurationPrompt({
+  scene, scene_number, scene_images, scene_audio_url, scene_audio_duration, ass_content,
+}) {
+  const systemPrompt = `
+You are an expert AI video generator for faceless YouTube content using Remotion.
+
+Task:
+- Generate a slide configuration using the provided scene_images and .ass subtitles.
+- You must decide the duration of each image based on the time frames in the dialogue lines from the .ass file.
+- Use EXACTLY the number of images provided — no more, no less. Do NOT reuse images.
+- Duration of any image MUST NEVER BE 0. If a slide would have duration 0, split the remaining duration equally across all slides.
+- Assign duration for each image based on the description and time frame of the audio.
+- Select the best transition for each slide from ONLY these values:
+  ${REMOTION_TRANSITIONS.join(", ")}
+- Select the best Ken Burns direction for each slide from ONLY these values:
+  ${KEN_BURNS_DIRECTIONS.join(", ")}
+- Ken Burns intensity guide:
+    0.05 → subtle zoom  (1 → 1.05)
+    0.2  → noticeable   (1 → 1.2)
+    0.5  → dramatic     (1 → 1.5)
+  Use values between 0.05 and 0.5.
+
+Return ONLY a valid JSON object:
+{
+  "slides": [
+    {
+      "image": "<image_url>",
+      "duration": <number in seconds, never zero>,
+      "transition": "<transition>",
+      "kenBurns": { "direction": "<direction>", "intensity": <number> }
+    }
+  ],
+  "ass_duration": <total duration in seconds from the ass content>
+}
+`.trim();
+
+  const userPrompt = `
+STORY_TITLE:
+${scene?.title ?? ""}
+
+SCENE_NUMBER:
+${scene_number}
+
+SCENE_IMAGES:
+${JSON.stringify(scene_images, null, 2)}
+
+IMAGE_SETUP:
+${JSON.stringify(scene?.image_setup ?? [], null, 2)}
+
+AUDIO_URL:
+${scene_audio_url}
+
+AUDIO_DURATION:
+${scene_audio_duration}
+
+AUDIO_ASS_CONTENT:
+${ass_content}
+`.trim();
+
+  return { systemPrompt, userPrompt };
+}
