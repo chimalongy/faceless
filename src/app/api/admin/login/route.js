@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { setAdminCookie } from '../../../../lib/adminAuth';
 
 // ── Hardcoded admin credentials ───────────────────────────────────────────────
-const ADMIN_EMAIL    = 'admin@facelessstudio.com';
+const ADMIN_EMAIL = 'admin@facelessstudio.com';
 const ADMIN_PASSWORD = 'FacelessAdmin2025!';
 
 export async function POST(request) {

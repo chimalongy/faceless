@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+.npm
+.yarn
+
+# Next.js and build outputs
+.next/
+out/
+build/
+dist/
+
+# Trigger.dev temporary directory
+.trigger/
+
+# Git
+.git/
+
+# Environment files (secrets should be set in trigger.dev dashboard, not bundled)
+.env*
+triggerdev.env
+
+# Temporary and render output files
+temp_render/
+temp_audio_files/
+
+# Backup / copy folders
+src/trigger copy/
+
+# Root image and media files
+robot.jpg
+woman.jpg
+stoic.jpg
+*.png
+*.jpg
+*.jpeg
+*.wav
+*.mp3
+*.mp4
+
+# OS generated files
+.DS_Store
+Thumbs.db

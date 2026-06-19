@@ -117,22 +117,35 @@ export default function UploadToYoutubeButton({ storyId, postStatus }) {
     }
   };
 
-  // ── Already published/scheduled: show badge only ──────────────────────────
-  if (postStatus === 'true' || postStatus === 'scheduled') {
+  // ── Already scheduled: show badge only ──────────────────────────
+  if (postStatus === 'scheduled') {
     return <StatusBadge postStatus={postStatus} />;
   }
+
+  const isPublished = postStatus === 'true';
 
   // ── Trigger button ────────────────────────────────────────────────────────
   return (
     <>
+      {isPublished && (
+        <div className="inline-flex items-center justify-center">
+          <StatusBadge postStatus={postStatus} />
+        </div>
+      )}
+
       <button
         onClick={() => { setMode('now'); setScheduledAt(defaultScheduleTime()); setIsModalOpen(true); }}
-        className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 hover:shadow-lg hover:shadow-red-500/25 transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed group"
+        className={`flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 font-bold rounded-xl transition-all active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed group ${
+          isPublished
+            ? 'bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-200'
+            : 'bg-red-600 text-white hover:bg-red-700 hover:shadow-lg hover:shadow-red-500/25'
+        }`}
         id="upload-to-youtube-btn"
       >
-        <FaYoutube className="text-xl group-hover:scale-110 transition-transform" />
-        <span>Upload to YouTube</span>
+        <FaYoutube className={`text-xl group-hover:scale-110 transition-transform ${isPublished ? 'text-stone-500' : ''}`} />
+        <span>{isPublished ? 'Republish to YouTube' : 'Upload to YouTube'}</span>
       </button>
+
 
       {/* ── Modal ── */}
       {isModalOpen && (
