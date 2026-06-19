@@ -206,11 +206,11 @@ export async function llmGenerateTopics({ description, topicCount, topicString }
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * @param {{ topicName: string, topicDescription: string, alreadyCreatedTitlesString: string }} params
+ * @param {{ topicName: string, topicDescription: string, alreadyCreatedTitlesString: string, contentTheme?: string, storyTitle?: string, storyPromptDescription?: string }} params
  * @returns {Promise<{ title: string, content: object }>}
  */
-export async function llmGenerateStory({ topicName, topicDescription, alreadyCreatedTitlesString }) {
-    const { systemPrompt, userPrompt } = buildGenerateStoryPrompt({ topicName, topicDescription, alreadyCreatedTitlesString });
+export async function llmGenerateStory({ topicName, topicDescription, alreadyCreatedTitlesString, contentTheme, storyTitle, storyPromptDescription }) {
+    const { systemPrompt, userPrompt } = buildGenerateStoryPrompt({ topicName, topicDescription, alreadyCreatedTitlesString, contentTheme, storyTitle, storyPromptDescription });
     return callLLM(systemPrompt, userPrompt);
 }
 
@@ -220,11 +220,11 @@ export async function llmGenerateStory({ topicName, topicDescription, alreadyCre
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * @param {{ story_title: string, story: string, section_title: string, section_content: string }} params
+ * @param {{ story_title: string, story: string, section_title: string, section_content: string, contentTheme?: string }} params
  * @returns {Promise<{ title: string, content: string }>}
  */
-export async function llmEnhanceStorySection({ story_title, story, section_title, section_content }) {
-    const { systemPrompt, userPrompt } = buildEnhanceStorySectionPrompt({ story_title, story, section_title, section_content });
+export async function llmEnhanceStorySection({ story_title, story, section_title, section_content, contentTheme }) {
+    const { systemPrompt, userPrompt } = buildEnhanceStorySectionPrompt({ story_title, story, section_title, section_content, contentTheme });
     return callLLM(systemPrompt, userPrompt);
 }
 
@@ -248,11 +248,11 @@ export async function llmEnhanceThumbnailPrompt({ storyTitle, storyContent, base
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * @param {{ storyTitle: string, section: string, storyContent: string }} params
+ * @param {{ storyTitle: string, section: string, storyContent: string, contentTheme?: string }} params
  * @returns {Promise<{ scenes: Array<object> }>}
  */
-export async function llmGeneratePointScript({ storyTitle, section, storyContent }) {
-    const { systemPrompt, userPrompt } = buildGeneratePointScriptPrompt({ storyTitle, section, storyContent });
+export async function llmGeneratePointScript({ storyTitle, section, storyContent, contentTheme }) {
+    const { systemPrompt, userPrompt } = buildGeneratePointScriptPrompt({ storyTitle, section, storyContent, contentTheme });
     return callLLM(systemPrompt, userPrompt);
 }
 

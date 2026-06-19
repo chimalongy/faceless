@@ -5,6 +5,7 @@ import { supabase } from "../../lib/supabase";
 type GeneratePointScriptPayload = {
   storyId: string;
   section: string;
+  contentTheme?: string;
 };
 
 type Scene = {
@@ -25,7 +26,7 @@ export const generatePointScript = task({
   id: "generate-point-script",
 
   run: async (payload: GeneratePointScriptPayload) => {
-    const { storyId, section } = payload;
+    const { storyId, section, contentTheme } = payload;
 
     // logger.info("📝 Generating script...", { storyId, section });
  logger.info("Generating script for section...");
@@ -55,6 +56,7 @@ export const generatePointScript = task({
       storyTitle: story.title,
       section,
       storyContent: story.content,
+      contentTheme,
     });
     logger.info("🤖 AI response received");
 

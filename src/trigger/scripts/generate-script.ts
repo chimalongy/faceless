@@ -16,7 +16,7 @@ export const generateScriptTask = task({
 
     const { data: story, error } = await supabase
       .from("stories")
-      .select("content, title")
+      .select("content, title, channel_id")
       .eq("id", storyId)
       .single();
 
@@ -26,6 +26,20 @@ export const generateScriptTask = task({
     }
 
     if (!story) throw new Error("Story not found");
+
+    // Fetch channel configurations to get content_theme
+    const { data: channel, error: channelError } = await supabase
+      .from("channels")
+      .select("content_theme")
+      .eq("id", story.channel_id)
+      .single();
+
+    if (channelError) {
+      logger.error("❌ Failed to fetch channel details", { error: channelError });
+    }
+
+    const contentTheme = channel?.content_theme || "narrator";
+    logger.info("🎬 Channel theme fetched", { contentTheme });
 
     const content =
       typeof story.content === "string"
@@ -40,6 +54,7 @@ export const generateScriptTask = task({
       await generatePointScript.triggerAndWait({
         storyId,
         section: content.introduction,
+        contentTheme,
       });
 
     if (!introductionResult.ok) {
@@ -65,6 +80,7 @@ export const generateScriptTask = task({
       const pointResult = await generatePointScript.triggerAndWait({
         storyId,
         section: point.story,
+        contentTheme,
       });
 
       if (!pointResult.ok) {

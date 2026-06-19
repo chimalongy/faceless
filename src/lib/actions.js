@@ -7,6 +7,8 @@ import { redirect } from 'next/navigation';
 import { videoScript } from '../../samplefiles/sample_script';
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { r2 } from './r2';
+import { tasks } from "@trigger.dev/sdk/v3";
+import { configureTrigger } from "./triggerConfig";
 
 // --- Channels ---
 
@@ -149,7 +151,7 @@ export async function updateChannelMedia(formData) {
   }
 }
 
-export async function updateChannelConfigurations(channelId, config) {
+export async function updateChannelConfigurations(channelId, config, contentTheme, narratorVoice) {
   const userId = await getSessionCookie();
   if (!userId) throw new Error('Unauthorized');
 
@@ -160,7 +162,11 @@ export async function updateChannelConfigurations(channelId, config) {
   try {
     const { error } = await supabase
       .from('channels')
-      .update({ configurations: JSON.stringify(config) })
+      .update({ 
+        configurations: JSON.stringify(config),
+        content_theme: contentTheme,
+        narrator_voice: narratorVoice,
+      })
       .eq('id', channelId)
       .eq('user_id', userId);
 
@@ -388,74 +394,37 @@ export async function createStory(formData) {
   const topicId = formData.get('topicId');
   const channel_type = formData.get('channel_type') || 'v1'; // Defaulting to v1 if missing to prevent redirect errors
   const title = formData.get('title');
-  const content = formData.get('content');
-  const social_media_target = formData.get('social_media_target');
-  const imageFiles = formData.getAll('images'); // Get multiple files
+  const description = formData.get('description');
 
   if (!title || !topicId || !channelId) throw new Error('Missing required fields');
 
-  // 1. Create Story
-  const { data: story, error: storyError } = await supabase
-    .from('stories')
-    .insert({
-      user_id: userId,
-      channel_id: channelId,
-      topic_id: topicId,
-      title,
-      content,
-      social_media_target,
-    })
-    .select()
+  // Fetch topic details
+  const { data: topic, error: topicError } = await supabase
+    .from('topics')
+    .select('name, description')
+    .eq('id', topicId)
     .single();
 
-  if (storyError) {
-    console.error('Create story error:', storyError);
-    throw new Error('Failed to create story');
+  if (topicError || !topic) {
+    console.error('Fetch topic error:', topicError);
+    throw new Error('Failed to find topic details');
   }
 
-  // 2. Upload Images (if any)
-  if (imageFiles && imageFiles.length > 0) {
-    for (let i = 0; i < imageFiles.length; i++) {
-      const file = imageFiles[i];
-      if (file.size === 0) continue;
-
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${story.id}/${Date.now()}_${i}.${fileExt}`;
-
-      // Convert File to ArrayBuffer for upload
-      const arrayBuffer = await file.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
-
-      const { error: uploadError } = await supabase.storage
-        .from('story-images')
-        .upload(fileName, buffer, {
-          contentType: file.type,
-          upsert: false
-        });
-
-      if (uploadError) {
-        console.error('Image upload error:', uploadError);
-        // Continue with other images even if one fails
-        continue;
-      }
-
-      // Get Public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('story-images')
-        .getPublicUrl(fileName);
-
-      // Record in story_images table
-      await supabase.from('story_images').insert({
-        story_id: story.id,
-        image_url: publicUrl,
-        order_index: i,
-        is_ai_generated: false
-      });
-    }
-  }
+  // Trigger the background task
+  await configureTrigger();
+  await tasks.trigger("generate-stories", {
+    userId,
+    topicId,
+    channelId,
+    topicName: topic.name,
+    topicDescription: topic.description,
+    storyCount: 1,
+    storyTitle: title,
+    storyPromptDescription: description,
+  });
 
   revalidatePath(`/dashboard/channels/${channelId}/${channel_type}/topics/${topicId}`);
-  redirect(`/dashboard/channels/${channelId}/${channel_type}/topics/${topicId}/stories/${story.id}`);
+  redirect(`/dashboard/channels/${channelId}/${channel_type}/topics/${topicId}`);
 }
 
 export async function getStory(storyId) {

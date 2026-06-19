@@ -25,6 +25,8 @@ type GenerateStoriesPayload = {
   channelId: string;
   storyCount: number;
   socialMediaTarget?: string;
+  storyTitle?: string;
+  storyPromptDescription?: string;
 };
 
 export const generateStoriesTask = task({
@@ -38,6 +40,8 @@ export const generateStoriesTask = task({
       topicDescription,
       storyCount,
       socialMediaTarget,
+      storyTitle,
+      storyPromptDescription,
     } = payload;
 
 
@@ -51,6 +55,20 @@ export const generateStoriesTask = task({
 
     try {
       const generatedStories: Story[] = [];
+
+      // Fetch channel configurations to get content_theme
+      const { data: channel, error: channelError } = await supabase
+        .from("channels")
+        .select("content_theme")
+        .eq("id", channelId)
+        .single();
+
+      if (channelError) {
+        logger.error("❌ Failed to fetch channel details", { error: channelError });
+      }
+
+      const contentTheme = channel?.content_theme || "narrator";
+      logger.info("🎬 Channel theme fetched", { contentTheme });
 
       // Fetch already generated stories from database
       const { data: existingStories, error: existingStoriesError } =
@@ -73,8 +91,19 @@ export const generateStoriesTask = task({
         logger.info(`📝 Generating story ${i + 1} of ${storyCount}`);
 
         logger.info("🤖 Calling LLM to generate story");
-        const parsed = await llmGenerateStory({ topicName, topicDescription, alreadyCreatedTitlesString }) as Story;
+        const parsed = await llmGenerateStory({
+          topicName,
+          topicDescription,
+          alreadyCreatedTitlesString,
+          contentTheme,
+          storyTitle,
+          storyPromptDescription,
+        }) as Story;
         logger.info("📦 AI response received");
+
+        if (!parsed.title && storyTitle) {
+          parsed.title = storyTitle;
+        }
 
         // ✅ Validate structure
         if (
@@ -97,6 +126,7 @@ export const generateStoriesTask = task({
           story: JSON.stringify(parsed.content),
           section_title: "Introduction",
           section_content: parsed.content.introduction,
+          contentTheme,
         });
 
         if (!enhancedIntroResult.ok) {
@@ -115,6 +145,7 @@ export const generateStoriesTask = task({
             story: JSON.stringify(parsed.content),
             section_title: point.point_title,
             section_content: point.story,
+            contentTheme,
           });
 
           if (!enhancedPointResult.ok) {
@@ -136,7 +167,7 @@ export const generateStoriesTask = task({
             user_id: userId,
             topic_id: topicId,
             channel_id: channelId,
-            title: parsed.title,
+            title: storyTitle || parsed.title,
             story_description: parsed.story_description,
             content: JSON.stringify(parsed.content),
             social_media_target: socialMediaTarget,

@@ -11,12 +11,13 @@ type StoryEnhancerPayload = {
   story: string;
   section_title: string;
   section_content: string;
+  contentTheme?: string;
 };
 
 export const generateStoryEnhancerTask = task({
   id: "generate-story-enhancer",
   run: async (payload: StoryEnhancerPayload) => {
-    const { story_title, story, section_title, section_content } = payload;
+    const { story_title, story, section_title, section_content, contentTheme } = payload;
 
 
 
@@ -27,7 +28,7 @@ export const generateStoryEnhancerTask = task({
 
     try {
       logger.info("🤖 Calling LLM to enhance story section");
-      const parsed = await llmEnhanceStorySection({ story_title, story, section_title, section_content }) as StorySection;
+      const parsed = await llmEnhanceStorySection({ story_title, story, section_title, section_content, contentTheme }) as StorySection;
       logger.info("📦 AI response received for enhancement");
 
       if (!parsed?.title || !parsed?.content) {

@@ -80,22 +80,38 @@ Use your max creativity to produce viral, audience-engaging ideas while strictly
 // 2. Generate a Single Story
 // ─────────────────────────────────────────────────────────────────────────────
 
+function getThemeToneDescription(theme) {
+  if (theme === 'story_teller') {
+    return 'Adopt a STORY TELLER tone: Dramatic, narrative-driven, using suspense, emotional hooks, and rich descriptive storytelling to captivate the listener. Make the story feel alive, focusing on dramatic beats, imagery, and immersive hooks.';
+  }
+  if (theme === 'teacher') {
+    return 'Adopt a TEACHER tone: Educational, highly structured, clear, informative, utilizing explanatory analogies and simple step-by-step breakdowns. Focus on teaching the listener, explaining core concepts clearly and logically.';
+  }
+  // Default/narrator tone
+  return 'Adopt a NARRATOR tone: Steady, professional, objective, clear, informative, and highly descriptive. Provide a clear and neutral narration of the events or topics.';
+}
+
 /**
- * @param {{ topicName: string, topicDescription: string, alreadyCreatedTitlesString: string }} params
+ * @param {{ topicName: string, topicDescription: string, alreadyCreatedTitlesString: string, contentTheme?: string, storyTitle?: string, storyPromptDescription?: string }} params
  * @returns {{ systemPrompt: string, userPrompt: string }}
  */
-export function buildGenerateStoryPrompt({ topicName, topicDescription, alreadyCreatedTitlesString }) {
+export function buildGenerateStoryPrompt({ topicName, topicDescription, alreadyCreatedTitlesString, contentTheme, storyTitle, storyPromptDescription }) {
+  const toneDesc = getThemeToneDescription(contentTheme);
   const systemPrompt = `
 You are a very intelligent and creative AI content writer for faceless YouTube channels. 
 When given a topic name, you would generate a content idea from the topic and generate the full content.
 Generate ONE viral, highly engaging content (not nessarily a story but in this context called a 'story') that lasts about 20 minutes.
 You are to structure the content with a clear introduction followed by several key points of discussion, ensuring that each point logically builds upon the previous one to create a smooth and progressive flow of the overall content idea.
 
+Tone & Persona Instruction:
+${toneDesc}
+
 Rules:
 
 1. The content idea must be drawn from the topic.
-2. The following is the previous content created from the topic ${alreadyCreatedTitlesString}. DO NOT come up with content/story that relate in meaning, context or sematics with any of those titles
+${storyTitle ? `2. The story/content title must be EXACTLY: "${storyTitle}". Make sure all content is perfectly relevant to this title.` : `2. The following is the previous content created from the topic ${alreadyCreatedTitlesString}. DO NOT come up with content/story that relate in meaning, context or sematics with any of those titles`}
 3. Title must be punchy, and MUST NOT include colons (:).
+${storyPromptDescription ? `\nCRITICAL USER REQUIREMENT: You MUST generate this story/content based on the following description/instruction: "${storyPromptDescription}"\n` : ''}
 4. a content must:
    - Begin with a clear "introduction" section.
    - Include multiple points as an array under "points".
@@ -134,6 +150,8 @@ topic_description: ${topicDescription}
   const userPrompt = `
 topic_name: ${topicName}
 topic_description: ${topicDescription}
+${storyTitle ? `story_title: ${storyTitle}` : ''}
+${storyPromptDescription ? `story_prompt_description: ${storyPromptDescription}` : ''}
 `.trim();
 
   return { systemPrompt, userPrompt };
@@ -145,13 +163,17 @@ topic_description: ${topicDescription}
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * @param {{ story_title: string, story: string, section_title: string, section_content: string }} params
+ * @param {{ story_title: string, story: string, section_title: string, section_content: string, contentTheme?: string }} params
  * @returns {{ systemPrompt: string, userPrompt: string }}
  */
-export function buildEnhanceStorySectionPrompt({ story_title, story, section_title, section_content }) {
+export function buildEnhanceStorySectionPrompt({ story_title, story, section_title, section_content, contentTheme }) {
+  const toneDesc = getThemeToneDescription(contentTheme);
   const systemPrompt = `
 You are a professional content writer specializing in faceless YouTube channels.
 Enhance a section of a content to make it more engaging, and well aligned for what section of the overall content.
+
+Tone & Persona Instruction:
+${toneDesc}
 
 Return ONLY valid JSON:
 
@@ -234,10 +256,11 @@ THEME: ${imageTheme}
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * @param {{ storyTitle: string, section: string, storyContent: string }} params
+ * @param {{ storyTitle: string, section: string, storyContent: string, contentTheme?: string }} params
  * @returns {{ systemPrompt: string, userPrompt: string }}
  */
-export function buildGeneratePointScriptPrompt({ storyTitle, section, storyContent }) {
+export function buildGeneratePointScriptPrompt({ storyTitle, section, storyContent, contentTheme }) {
+  const toneDesc = getThemeToneDescription(contentTheme);
   const systemPrompt = `
 You are a professional storytelling assistant.
 
@@ -247,6 +270,10 @@ Your task:
 - Break the section into multiple cinematic scenes.
 - Decide the number of images per scene.
 - Ensure the image_setup length equals numberOfImages.
+
+Tone & Persona Instruction:
+${toneDesc}
+Specifically, write the 'voiceText' of the scenes adopting this tone.
 
 Return ONLY valid JSON.
 

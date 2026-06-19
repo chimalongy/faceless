@@ -64,6 +64,8 @@ export default async function ChannelConfigurePage({ params }) {
           <ChannelConfigureForm 
             channelId={channelId} 
             initialConfig={initialConfig} 
+            contentTheme={channel.content_theme}
+            narratorVoice={channel.narrator_voice}
           />
         </div>
 

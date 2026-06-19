@@ -1,25 +1,67 @@
 'use client';
 
 import { useState } from 'react';
-import { FaSave, FaSpinner, FaLock, FaCheckCircle, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaSave, FaSpinner, FaLock, FaCheckCircle, FaEye, FaEyeSlash, FaMicrophone } from 'react-icons/fa';
 import { HiSparkles } from 'react-icons/hi2';
 import { updateChannelConfigurations, testPostersHiveConnection } from '../../../../../../lib/actions';
 import toast from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 
-export default function ChannelConfigureForm({ channelId, initialConfig = {} }) {
+const ENGLISH_VOICES = {
+  "🇺🇸 American Female": [
+    { id: "af_heart",   label: "Heart",   grade: "A"  },
+    { id: "af_bella",   label: "Bella",   grade: "A-" },
+    { id: "af_nicole",  label: "Nicole",  grade: "B-" },
+    { id: "af_aoede",   label: "Aoede",   grade: "C+" },
+    { id: "af_kore",    label: "Kore",    grade: "C+" },
+    { id: "af_sarah",   label: "Sarah",   grade: "C+" },
+    { id: "af_alloy",   label: "Alloy",   grade: "C"  },
+    { id: "af_nova",    label: "Nova",    grade: "C"  },
+    { id: "af_jessica", label: "Jessica", grade: "D"  },
+    { id: "af_river",   label: "River",   grade: "D"  },
+    { id: "af_sky",     label: "Sky",     grade: "C-" },
+  ],
+  "🇺🇸 American Male": [
+    { id: "am_fenrir",  label: "Fenrir",  grade: "C+" },
+    { id: "am_michael", label: "Michael", grade: "C+" },
+    { id: "am_puck",    label: "Puck",    grade: "C+" },
+    { id: "am_echo",    label: "Echo",    grade: "D"  },
+    { id: "am_eric",    label: "Eric",    grade: "D"  },
+    { id: "am_liam",    label: "Liam",    grade: "D"  },
+    { id: "am_onyx",    label: "Onyx",    grade: "D"  },
+    { id: "am_santa",   label: "Santa",   grade: "D-" },
+    { id: "am_adam",    label: "Adam",    grade: "F+" },
+  ],
+  "🇬🇧 British Female": [
+    { id: "bf_emma",     label: "Emma",     grade: "B-" },
+    { id: "bf_isabella", label: "Isabella", grade: "C"  },
+    { id: "bf_alice",    label: "Alice",    grade: "D"  },
+    { id: "bf_lily",     label: "Lily",     grade: "D"  },
+  ],
+  "🇬🇧 British Male": [
+    { id: "bm_fable",  label: "Fable",  grade: "C"  },
+    { id: "bm_george", label: "George", grade: "C"  },
+    { id: "bm_lewis",  label: "Lewis",  grade: "D+" },
+    { id: "bm_daniel", label: "Daniel", grade: "D"  },
+  ],
+};
+
+export default function ChannelConfigureForm({ channelId, initialConfig = {}, contentTheme, narratorVoice }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [testing, setTesting] = useState(false);
   const [apiKey, setApiKey] = useState(initialConfig.postershive?.api_key || '');
   const [showKey, setShowKey] = useState(false);
   const [isTested, setIsTested] = useState(false);
+  
+  const [selectedTheme, setSelectedTheme] = useState(contentTheme || 'story_teller');
+  const [selectedVoice, setSelectedVoice] = useState(narratorVoice || 'af_heart');
 
   const isConnected = !!initialConfig.postershive?.api_key;
+  const isKeyChanged = apiKey !== (initialConfig.postershive?.api_key || '');
 
   const handleApiKeyChange = (e) => {
     setApiKey(e.target.value);
-    // Reset test state if user types a new key
     if (isTested) {
       setIsTested(false);
     }
@@ -52,7 +94,7 @@ export default function ChannelConfigureForm({ channelId, initialConfig = {} }) 
 
   const handleSave = async (e) => {
     if (e) e.preventDefault();
-    if (!isTested) {
+    if (isKeyChanged && !isTested) {
       toast.error('Please test the connection successfully before saving.');
       return;
     }
@@ -68,7 +110,7 @@ export default function ChannelConfigureForm({ channelId, initialConfig = {} }) 
         }
       };
       
-      const result = await updateChannelConfigurations(channelId, fullConfig);
+      const result = await updateChannelConfigurations(channelId, fullConfig, selectedTheme, selectedVoice);
       if (result.success) {
         toast.success('Configuration saved successfully!', { id: t });
         router.push(`/dashboard/channels/${channelId}/v1`);
@@ -87,6 +129,77 @@ export default function ChannelConfigureForm({ channelId, initialConfig = {} }) 
 
   return (
     <div className="space-y-8">
+      {/* Voice & Theme Settings Card */}
+      <div className="bg-white rounded-2xl p-6 sm:p-8 border border-orange-100 shadow-sm relative overflow-hidden group transition-all duration-300 hover:shadow-md">
+        <div className="absolute top-0 left-0 w-2 h-full bg-violet-500" />
+        
+        <div className="flex items-center gap-4 mb-6">
+          <div className="w-12 h-12 rounded-xl bg-violet-50 flex items-center justify-center text-violet-500 shadow-inner group-hover:scale-110 transition-transform duration-300">
+            <FaMicrophone className="text-xl" />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-gray-900">Voice &amp; Theme Settings</h3>
+            <p className="text-sm text-gray-500 mt-0.5">Configure your channel's AI persona and narration style</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Content Theme */}
+          <div className="space-y-2">
+            <label htmlFor="content_theme" className="text-sm font-semibold text-gray-700">
+              Content Theme
+            </label>
+            <div className="relative">
+              <select
+                id="content_theme"
+                value={selectedTheme}
+                onChange={(e) => setSelectedTheme(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all outline-none cursor-pointer appearance-none"
+              >
+                <option value="story_teller">🎭 Story Teller</option>
+                <option value="teacher">📚 Teacher</option>
+                <option value="narrator">🎙️ Narrator</option>
+              </select>
+              <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          {/* Narrator Voice */}
+          <div className="space-y-2">
+            <label htmlFor="narrator_voice" className="text-sm font-semibold text-gray-700">
+              Narrator Voice
+            </label>
+            <div className="relative">
+              <select
+                id="narrator_voice"
+                value={selectedVoice}
+                onChange={(e) => setSelectedVoice(e.target.value)}
+                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all outline-none cursor-pointer appearance-none"
+              >
+                {Object.entries(ENGLISH_VOICES).map(([group, voices]) => (
+                  <optgroup key={group} label={group}>
+                    {voices.map(v => (
+                      <option key={v.id} value={v.id}>
+                        {v.label} · {v.grade}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+              <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* PostersHive API Section */}
       <div className="bg-white rounded-2xl p-6 sm:p-8 border border-orange-100 shadow-sm relative overflow-hidden group transition-all duration-300 hover:shadow-md">
         <div className="absolute top-0 left-0 w-2 h-full bg-orange-500" />
@@ -152,7 +265,7 @@ export default function ChannelConfigureForm({ channelId, initialConfig = {} }) 
           Cancel
         </button>
 
-        {isTested ? (
+        {!isKeyChanged || isTested ? (
           <button
             type="button"
             onClick={handleSave}
