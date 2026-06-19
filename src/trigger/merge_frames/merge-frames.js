@@ -95,9 +95,45 @@ export const mergeFramesTask = task({
           .on("error", (err) => reject(err));
       });
 
+      const upscaledPath = path.join(tmpDir, "upscaled.mp4");
+
+      logger.log("Starting FFmpeg upscaling to 1080p...");
+
+      await new Promise((resolve, reject) => {
+        let lastHeartbeat = Date.now();
+
+        ffmpeg()
+          .input(outputPath)
+          .outputOptions([
+            "-vf", "scale=1920:1080:flags=lanczos",
+            "-c:v", "libx264",
+            "-crf", "18",
+            "-preset", "slow",
+            "-c:a", "copy",
+          ])
+          .save(upscaledPath)
+          .on("progress", (progress) => {
+            const now = Date.now();
+
+            // Log progress every 20s to send heartbeat signal
+            if (now - lastHeartbeat >= 20_000) {
+              logger.log("FFmpeg upscaling progress...", {
+                percent: progress.percent,
+                timemark: progress.timemark,
+              });
+              lastHeartbeat = now;
+            }
+          })
+          .on("end", () => {
+            logger.log("FFmpeg upscaling complete");
+            resolve();
+          })
+          .on("error", (err) => reject(err));
+      });
+
       // Upload merged video to Cloudflare R2
-      logger.log("Uploading merged video to R2...");
-      const mergedBuffer = fs.readFileSync(outputPath);
+      logger.log("Uploading merged (upscaled) video to R2...");
+      const mergedBuffer = fs.readFileSync(upscaledPath);
 
       await r2.send(
         new PutObjectCommand({
