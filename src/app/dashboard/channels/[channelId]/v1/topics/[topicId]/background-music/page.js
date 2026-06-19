@@ -11,6 +11,7 @@ import { supabase } from '../../../../../../../../lib/supabase';
 import GenerateTopicMusicModal from '../../../../../../../../components/topics/GenerateTopicMusicModal';
 import EditMusicPromptForm from '../../../../../../../../components/topics/EditMusicPromptForm';
 import MusicVolumeSlider from '../../../../../../../../components/topics/MusicVolumeSlider';
+import TopicBackgroundMusicUpload from '../../../../../../../../components/topics/TopicBackgroundMusicUpload';
 
 export default async function BackgroundMusicPage({ params }) {
   const userId = await getSessionCookie();
@@ -95,6 +96,13 @@ export default async function BackgroundMusicPage({ params }) {
         channelId={channelId}
         currentPrompt={topic.background_music_prompt}
         currentDuration={topic.background_music_duration}
+      />
+
+      {/* ── CUSTOM MUSIC UPLOAD CARD ── */}
+      <TopicBackgroundMusicUpload
+        topicId={topicId}
+        channelId={channelId}
+        hasMusic={hasMusic}
       />
 
       {/* ── MUSIC PLAYER CARD (only if music exists) ── */}

@@ -693,6 +693,92 @@ export async function getTopicBackgroundMusic(topicId) {
   return data || [];
 }
 
+export async function replaceTopicBackgroundMusic(formData) {
+  const userId = await getSessionCookie();
+  if (!userId) throw new Error('Unauthorized');
+
+  const topicId = formData.get('topicId');
+  const channelId = formData.get('channelId');
+  const file = formData.get('file');
+
+  if (!topicId || !file) {
+    throw new Error('Missing required fields');
+  }
+
+  // Verify topic belongs to user
+  const { data: topic, error: topicError } = await supabase
+    .from('topics')
+    .select('id, channel_id')
+    .eq('id', topicId)
+    .eq('user_id', userId)
+    .single();
+
+  if (topicError || !topic) {
+    throw new Error('Topic not found');
+  }
+
+  const fileExt = file.name.split('.').pop();
+  const fileName = `background-music/topics/${topicId}/uploaded_${Date.now()}.${fileExt}`;
+
+  // Upload to Supabase Storage
+  const arrayBuffer = await file.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+
+  try {
+    const { error: uploadError } = await supabase.storage
+      .from(process.env.SUPABASE_BUCKET)
+      .upload(fileName, buffer, {
+        contentType: file.type || 'audio/mpeg',
+        upsert: true,
+      });
+
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from(process.env.SUPABASE_BUCKET)
+      .getPublicUrl(fileName);
+
+    // Update Supabase
+    const { error } = await supabase
+      .from('topics')
+      .update({ background_music_url: publicUrl })
+      .eq('id', topicId)
+      .eq('user_id', userId);
+
+    if (error) throw error;
+
+    revalidatePath(`/dashboard/channels/${channelId}/v1/topics/${topicId}/background-music`);
+    return { success: true, url: publicUrl };
+  } catch (error) {
+    console.error('Replace topic background music error:', error);
+    throw new Error('Failed to upload and replace background music');
+  }
+}
+
+export async function clearTopicBackgroundMusic(formData) {
+  const userId = await getSessionCookie();
+  if (!userId) throw new Error('Unauthorized');
+
+  const topicId = formData.get('topicId');
+  const channelId = formData.get('channelId');
+
+  if (!topicId) throw new Error('Topic ID is required');
+
+  const { error } = await supabase
+    .from('topics')
+    .update({ background_music_url: null })
+    .eq('id', topicId)
+    .eq('user_id', userId);
+
+  if (error) {
+    console.error('Clear topic background music error:', error);
+    throw new Error('Failed to clear background music');
+  }
+
+  revalidatePath(`/dashboard/channels/${channelId}/v1/topics/${topicId}/background-music`);
+  return { success: true };
+}
+
 export async function uploadBackgroundMusic(formData) {
   const userId = await getSessionCookie();
   if (!userId) throw new Error('Unauthorized');
