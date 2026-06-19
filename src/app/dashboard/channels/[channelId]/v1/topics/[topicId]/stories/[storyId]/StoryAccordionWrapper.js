@@ -38,6 +38,7 @@ import GenerateAllSceneFramesButton from '../../../../../../../../../components/
 import GenerateSceneFrameVideoButton from '../../../../../../../../../components/stories/GenerateSceneFrameVideoButton';
 import MergeVideosButton from '../../../../../../../../../components/stories/MergeVideosButton';
 import { updateGeneratedScript } from '../../../../../../../../../lib/actions';
+import { toast } from 'react-hot-toast';
 
 // Individual Accordion Section Component
 function AccordionSection({ title, subtitle, icon, iconBg, iconColor, children, defaultOpen = false, headerActions, badge }) {
@@ -157,6 +158,15 @@ export default function StoryAccordionWrapper({
   const images = currentImages;
   const audioFiles = currentAudioFiles;
   const videoFrames = currentVideoFrames;
+
+  const handleCopyPrompt = (promptText) => {
+    if (!promptText) {
+      toast.error("No prompt available to copy");
+      return;
+    }
+    navigator.clipboard.writeText(promptText);
+    toast.success("Prompt copied to clipboard!");
+  };
 
   // Set up the polling interval to ping the db for updates
   useEffect(() => {
@@ -405,29 +415,41 @@ export default function StoryAccordionWrapper({
                               const img = sceneImages.find((image) => image.image_number === idx);
 
                               if (img) {
+                                const promptText = setup.aiImagePrompts || setup.visualDescription || '';
                                 return (
-                                  <div key={img.id} className="relative group aspect-video rounded-lg overflow-hidden border border-gray-200 bg-white shadow-sm">
-                                    <img
-                                      src={img.image_url}
-                                      alt={`Scene ${scene.sceneNumber} Visual ${idx + 1}`}
-                                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                      <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
-                                        <span className="text-[10px] text-white/90 font-medium bg-black/40 px-1.5 py-0.5 rounded-full">
-                                          Img {idx + 1}
-                                        </span>
-                                        <a
-                                          href={img.image_url}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="inline-flex items-center gap-1 text-[10px] text-white bg-black/60 hover:bg-white hover:text-black px-2 py-1 rounded-full border border-white/20 transition-colors"
-                                        >
-                                          <FaExternalLinkAlt className="text-[8px]" />
-                                          <span>View</span>
-                                        </a>
+                                  <div key={img.id} className="flex flex-col gap-2">
+                                    <div className="relative group aspect-video rounded-lg overflow-hidden border border-gray-200 bg-white shadow-sm">
+                                      <img
+                                        src={img.image_url}
+                                        alt={`Scene ${scene.sceneNumber} Visual ${idx + 1}`}
+                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                      />
+                                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                        <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
+                                          <span className="text-[10px] text-white/90 font-medium bg-black/40 px-1.5 py-0.5 rounded-full">
+                                            Img {idx + 1}
+                                          </span>
+                                          <a
+                                            href={img.image_url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center gap-1 text-[10px] text-white bg-black/60 hover:bg-white hover:text-black px-2 py-1 rounded-full border border-white/20 transition-colors"
+                                          >
+                                            <FaExternalLinkAlt className="text-[8px]" />
+                                            <span>View</span>
+                                          </a>
+                                        </div>
                                       </div>
                                     </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleCopyPrompt(promptText)}
+                                      title={promptText}
+                                      className="w-full inline-flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg bg-gray-50 border border-gray-200 hover:bg-orange-50 hover:border-orange-200 text-[11px] font-semibold text-stone-600 hover:text-orange-600 transition-all cursor-pointer"
+                                    >
+                                      <FaCopy className="text-[10px]" />
+                                      <span>Copy Prompt</span>
+                                    </button>
                                   </div>
                                 );
                               } else {
@@ -451,31 +473,47 @@ export default function StoryAccordionWrapper({
                           </div>
                         ) : (
                           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                            {sceneImages.map((img, idx) => (
-                              <div key={img.id} className="relative group aspect-video rounded-lg overflow-hidden border border-gray-200 bg-white shadow-sm">
-                                <img
-                                  src={img.image_url}
-                                  alt={`Scene ${scene.sceneNumber} Visual ${idx + 1}`}
-                                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                  <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
-                                    <span className="text-[10px] text-white/90 font-medium bg-black/40 px-1.5 py-0.5 rounded-full">
-                                      Img {img.image_number + 1}
-                                    </span>
-                                    <a
-                                      href={img.image_url}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="inline-flex items-center gap-1 text-[10px] text-white bg-black/60 hover:bg-white hover:text-black px-2 py-1 rounded-full border border-white/20 transition-colors"
-                                    >
-                                      <FaExternalLinkAlt className="text-[8px]" />
-                                      <span>View</span>
-                                    </a>
+                            {sceneImages.map((img, idx) => {
+                              const promptText = scene.image_setup?.[img.image_number ?? idx]?.aiImagePrompts 
+                                || scene.image_setup?.[img.image_number ?? idx]?.visualDescription 
+                                || '';
+                              return (
+                                <div key={img.id} className="flex flex-col gap-2">
+                                  <div className="relative group aspect-video rounded-lg overflow-hidden border border-gray-200 bg-white shadow-sm">
+                                    <img
+                                      src={img.image_url}
+                                      alt={`Scene ${scene.sceneNumber} Visual ${idx + 1}`}
+                                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                      <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between">
+                                        <span className="text-[10px] text-white/90 font-medium bg-black/40 px-1.5 py-0.5 rounded-full">
+                                          Img {img.image_number + 1}
+                                        </span>
+                                        <a
+                                          href={img.image_url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="inline-flex items-center gap-1 text-[10px] text-white bg-black/60 hover:bg-white hover:text-black px-2 py-1 rounded-full border border-white/20 transition-colors"
+                                        >
+                                          <FaExternalLinkAlt className="text-[8px]" />
+                                          <span>View</span>
+                                        </a>
+                                      </div>
+                                    </div>
                                   </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleCopyPrompt(promptText)}
+                                    title={promptText}
+                                    className="w-full inline-flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg bg-gray-50 border border-gray-200 hover:bg-orange-50 hover:border-orange-200 text-[11px] font-semibold text-stone-600 hover:text-orange-600 transition-all cursor-pointer"
+                                  >
+                                    <FaCopy className="text-[10px]" />
+                                    <span>Copy Prompt</span>
+                                  </button>
                                 </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         )}
                       </div>
