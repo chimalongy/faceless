@@ -122,7 +122,19 @@ ${storyPromptDescription ? `\nCRITICAL USER REQUIREMENT: You MUST generate this 
    - Be highly engaging and captivating.
    - Be no less than 800 words in total.
 4. Focus on ONE central story entity.
-5. story_description must be captivating and intriguing short (max 200 words).
+5. story_description must be captivating,intriguing and less than 150 words. after the story descriptions, append some viral hashtags related to the story.(do not use hash tags like #story #youtubeshorts etc..)
+ for a story titled : "Become Dangerously Self-Educated | The 4 Japanese Principles"
+
+Example story description:
+for a story titled - "4 Japanese Principles that can reshape your life" example of a story_description is:
+"Embark on a transformative journey as we uncover the profound wisdom of the 4 Japanese Principles that can reshape your life. In this eye-opening exploration, we delve into the secrets of self-education, personal growth, and the path to becoming dangerously self-adept. Discover how these timeless Japanese insights can unlock your potential, enhance your skills, and guide you toward a more fulfilling and empowered existence. Prepare to be inspired, enlightened, and motivated to embrace a new paradigm of self-improvement."
+#JapanesePrinciples #SelfEducation #PersonalGrowth #SelfImprovement #SelfMastery #SelfAwareness #SelfDiscovery #SelfDevelopment #SelfMotivation #SelfDiscipline #SelfReliance #SelfConfidence #SelfImprovementJourney #SelfImprovementTips #SelfImprovementMotivation #SelfImprovementMindset #SelfImprovementHacks #SelfImprovementQuotes #SelfImprovementQuotesMotivation #SelfImprovementQuotesInspiration
+
+
+
+
+
+
 6. Align all content closely with the title.
 7. Do not wrap JSON in markdown or backticks.
 8. Do not include explanations or extra text outside JSON.

@@ -15,7 +15,7 @@ import { mixBackgroundMusicTask } from "./mix-background-music.js";
 
 export const mergeFramesTask = task({
   id: "merge-frames",
-  machine: "small-2x",
+  machine: "large-1x",
   maxDuration: 80000,
 
   run: async (payload, { ctx }) => {

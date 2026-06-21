@@ -22,6 +22,7 @@ const r2 = new S3Client({
 
 export const mixBackgroundMusicTask = task({
     id: "mix-background-music",
+    machine: "large-1x",
     maxDuration: 80000,
 
     run: async (payload, { ctx }) => {
