@@ -136,9 +136,16 @@ async function checkUserUseGroq(storyId) {
 async function callGroq(api, systemPrompt, userPrompt) {
     const { OpenAI } = await import("openai");
 
+    let baseURL = api.llm_url || "https://api.groq.com/openai/v1";
+    if (baseURL.endsWith("/chat/completions")) {
+        baseURL = baseURL.slice(0, -"/chat/completions".length);
+    } else if (baseURL.endsWith("/chat/completions/")) {
+        baseURL = baseURL.slice(0, -"/chat/completions/".length);
+    }
+
     const client = new OpenAI({
         apiKey: api.llm_api,
-        baseURL: api.llm_url || "https://api.groq.com/openai/v1",
+        baseURL: baseURL,
     });
 
     const response = await client.chat.completions.create({
