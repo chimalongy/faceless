@@ -154,7 +154,7 @@ export const generateScriptFrames = task({
 
     // Filter out skipped/failed/successful prepared items
     const validItems = payloads.filter(item => item && item.success);
-    const sceneResults = payloads.filter(item => item && (item.skipped || !item.success)).map(item => {
+    const skippedOrFailedResults = payloads.filter(item => item && (item.skipped || !item.success)).map(item => {
       if (item.skipped) {
         return {
           sceneNumber: item.sceneNumber,
@@ -169,6 +169,8 @@ export const generateScriptFrames = task({
         };
       }
     });
+
+    sceneResults.push(...skippedOrFailedResults);
 
     if (validItems.length > 0) {
       logger.info("Triggering scene video workers in batch", { count: validItems.length });
