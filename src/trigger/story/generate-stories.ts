@@ -120,41 +120,44 @@ export const generateStoriesTask = task({
 
 
 
-        // Enhance introduction
-        const enhancedIntroResult = await generateStoryEnhancerTask.triggerAndWait({
-          story_title: parsed.title,
-          story: JSON.stringify(parsed.content),
-          section_title: "Introduction",
-          section_content: parsed.content.introduction,
-          contentTheme,
-        });
+        // Enhance introduction and points in a single batch in parallel
+        const batchItems = [
+          {
+            payload: {
+              story_title: parsed.title,
+              story: JSON.stringify(parsed.content),
+              section_title: "Introduction",
+              section_content: parsed.content.introduction,
+              contentTheme,
+            }
+          },
+          ...parsed.content.points.map((point) => ({
+            payload: {
+              story_title: parsed.title,
+              story: JSON.stringify(parsed.content),
+              section_title: point.point_title,
+              section_content: point.story,
+              contentTheme,
+            }
+          }))
+        ];
 
-        if (!enhancedIntroResult.ok) {
-          throw new Error(
-            `Story enhancer failed for Introduction: ${enhancedIntroResult}`
-          );
+        logger.info("🎬 Triggering story sections enhancement in batch", { count: batchItems.length });
+        const results = await generateStoryEnhancerTask.batchTriggerAndWait(batchItems);
+
+        // Process results
+        const introResult = results[0];
+        if (!introResult.ok) {
+          throw new Error(`Story enhancer failed for Introduction: ${introResult.error?.message || JSON.stringify(introResult.error)}`);
         }
+        parsed.content.introduction = introResult.output.content;
 
-        parsed.content.introduction = enhancedIntroResult.output.content;
-
-        // Enhance each point
         for (let j = 0; j < parsed.content.points.length; j++) {
-          const point = parsed.content.points[j];
-          const enhancedPointResult = await generateStoryEnhancerTask.triggerAndWait({
-            story_title: parsed.title,
-            story: JSON.stringify(parsed.content),
-            section_title: point.point_title,
-            section_content: point.story,
-            contentTheme,
-          });
-
-          if (!enhancedPointResult.ok) {
-            throw new Error(
-              `Story enhancer failed for point "${point.point_title}": ${enhancedPointResult}`
-            );
+          const pointResult = results[j + 1];
+          if (!pointResult.ok) {
+            throw new Error(`Story enhancer failed for point "${parsed.content.points[j].point_title}": ${pointResult.error?.message || JSON.stringify(pointResult.error)}`);
           }
-
-          point.story = enhancedPointResult.output.content;
+          parsed.content.points[j].story = pointResult.output.content;
         }
 
 

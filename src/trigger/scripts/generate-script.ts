@@ -49,52 +49,54 @@ export const generateScriptTask = task({
     const scripts: any[] = [];
     
 
-    // ---------- INTRODUCTION ----------
-    const introductionResult =
-      await generatePointScript.triggerAndWait({
-        storyId,
-        section: content.introduction,
-        contentTheme,
-      });
+    // Batch trigger the introduction and point scripts in parallel
+    const batchItems = [
+      {
+        payload: {
+          storyId,
+          section: content.introduction,
+          contentTheme,
+        }
+      },
+      ...content.points.map((point: any) => ({
+        payload: {
+          storyId,
+          section: point.story,
+          contentTheme,
+        }
+      }))
+    ];
 
-    if (!introductionResult.ok) {
-      logger.error("❌ Introduction generation failed");
+    logger.info("🎬 Triggering script generation in batch", { count: batchItems.length });
+    const results = await generatePointScript.batchTriggerAndWait(batchItems);
+
+    // Process Introduction result
+    const introResult = results[0];
+    if (!introResult.ok) {
+      logger.error("❌ Introduction generation failed", { error: introResult.error });
       throw new Error("Introduction script failed");
     }
 
-    const introScenes = introductionResult.output.scenes;
-
+    const introScenes = introResult.output.scenes;
     for (const scene of introScenes) {
       scene.sceneNumber = scripts.length + 1;
       scripts.push(scene);
     }
-
     logger.info("✅ Introduction scenes added");
 
-    // ---------- POINTS ----------
-    const points = content.points;
-
-    for (let index = 0; index < points.length; index++) {
-      const point = points[index];
-
-      const pointResult = await generatePointScript.triggerAndWait({
-        storyId,
-        section: point.story,
-        contentTheme,
-      });
-
+    // Process Points results
+    for (let index = 0; index < content.points.length; index++) {
+      const pointResult = results[index + 1];
       if (!pointResult.ok) {
-        logger.error(`❌ Point ${index} generation failed`);
+        logger.error(`❌ Point ${index} generation failed`, { error: pointResult.error });
         throw new Error(`Point ${index} script failed`);
       }
 
       const pointScenes = pointResult.output.scenes;
-
       for (const scene of pointScenes) {
         scene.sceneNumber = scripts.length + 1;
         scripts.push(scene);
       }
-
       logger.info(`✅ Point ${index} scenes added`);
     }
 

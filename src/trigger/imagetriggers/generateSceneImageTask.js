@@ -11,38 +11,14 @@ export const generateSceneImageTask = task({
   id: "generate-scene-images",
 
   run: async (payload) => {
-    const { storyId, scene } = payload;
+    const { storyId, scene, storyTitle, storyContent, imageGenerationTheme } = payload;
 
     logger.info("Starting scene image generation", {
       storyId,
       sceneNumber: scene.sceneNumber,
     });
 
-
-
-    // Fetch story
-    const { data: story, error: storyError } = await supabase
-      .from("stories")
-      .select("id, title, content, generated_script, topic_id")
-      .eq("id", storyId)
-      .single();
-
-    if (storyError || !story) {
-      throw new Error("Story not found");
-    }
-
-    // Fetch topic
-    const { data: topic, error: topicError } = await supabase
-      .from("topics")
-      .select("image_generation_theme")
-      .eq("id", story.topic_id)
-      .single();
-
-    if (topicError || !topic) {
-      throw new Error("Topic not found");
-    }
-
-    const safeTitle = story.title.replace(/[^a-z0-9]/gi, "_").toLowerCase();
+    const safeTitle = (storyTitle || "story").replace(/[^a-z0-9]/gi, "_").toLowerCase();
 
     const sceneNumber = scene.sceneNumber;
     const sceneImageSetup = scene.image_setup;
@@ -99,11 +75,11 @@ export const generateSceneImageTask = task({
       let enhancedPrompt = originalPrompt;
       try {
         const parsed = await llmEnhanceImagePrompt({
-          storyContent: story.content,
+          storyContent: storyContent,
           sceneNumber,
           imageNumber: i,
           originalPrompt,
-          imageGenerationTheme: topic.image_generation_theme,
+          imageGenerationTheme: imageGenerationTheme,
         });
         enhancedPrompt = parsed.modified_prompt || originalPrompt;
       } catch {
@@ -132,7 +108,7 @@ export const generateSceneImageTask = task({
         .from("story_images")
         .upsert(
           {
-            story_id: story.id,
+            story_id: storyId,
             image_url: sceneImage.url,
             scene_number: sceneNumber,
             image_number: i,

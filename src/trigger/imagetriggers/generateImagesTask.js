@@ -14,18 +14,32 @@ export const generateImagesTask = task({
     // Fetch story
     const { data: story, error } = await supabase
       .from("stories")
-      .select("id, generated_script")
+      .select("id, title, content, generated_script, topic_id")
       .eq("id", storyId)
       .single();
 
     if (error || !story) {
       logger.error("Story not found", { error });
-        console.log("FAILED TO FETCH STORY")
+      console.log("FAILED TO FETCH STORY")
       throw new Error("Story not found");
-    
+    }
+
+    // Fetch topic image generation theme
+    let imageGenerationTheme = null;
+    if (story.topic_id) {
+      const { data: topic, error: topicError } = await supabase
+        .from("topics")
+        .select("image_generation_theme")
+        .eq("id", story.topic_id)
+        .single();
+      
+      if (topicError) {
+        logger.warn("Failed to fetch topic theme, continuing without it", { topicError });
+      } else {
+        imageGenerationTheme = topic?.image_generation_theme || null;
+      }
     }
   
- 
     let scenes = [];
 
     try {
@@ -39,17 +53,22 @@ export const generateImagesTask = task({
       throw new Error("No scenes found");
     }
 
-    logger.info("Triggering scene image tasks", {
+    logger.info("Triggering scene image tasks in parallel", {
       sceneCount: scenes.length,
     });
 
-    // Trigger tasks in parallel
-    for (const scene of scenes) {
-  await generateSceneImageTask.triggerAndWait({
-    storyId,
-    scene,
-  });
-}
+    // Trigger tasks in parallel using batchTriggerAndWait
+    const batchItems = scenes.map((scene) => ({
+      payload: {
+        storyId,
+        scene,
+        storyTitle: story.title,
+        storyContent: story.content,
+        imageGenerationTheme,
+      }
+    }));
+
+    await generateSceneImageTask.batchTriggerAndWait(batchItems);
 
       return {
         success: true,
@@ -62,4 +81,4 @@ export const generateImagesTask = task({
         .eq("id", storyId);
     }
   },
-});
+}); 
