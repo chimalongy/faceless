@@ -10,6 +10,7 @@ import {
 } from "./prompts.js";
 import { getLLMAPIs } from "./getapis.js";
 import { supabase } from "../supabase.js";
+import { logger } from "@trigger.dev/sdk/v3";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // LLM-central.js
@@ -70,6 +71,9 @@ async function callLLM(systemPrompt, userPrompt, options = {}) {
             apisToTry = llm_apis.filter(api => api.llm_provider !== 'groq');
         }
     }
+
+    logger.info(`Total LLM APIs count: ${llm_apis.length}`);
+    logger.info(`LLM APIs to try after filtering: ${apisToTry.length}`);
 
     let lastError = null;
 
