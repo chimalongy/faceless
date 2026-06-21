@@ -110,16 +110,16 @@ export default function DashboardLayout({ children }) {
       {/* ── Footer ── */}
       <div className="flex-shrink-0 p-3 border-t border-gray-100 space-y-1">
         {/* User pill */}
-        <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-stone-50 border border-gray-100">
+        <Link href="/dashboard/my-account/settings" className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-stone-50 border border-gray-100 hover:bg-orange-50/50 hover:border-orange-200 transition-all group/pill no-underline">
           <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center flex-shrink-0">
             <FaUserCircle className="text-white text-sm" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-semibold text-stone-800 truncate leading-tight">My Account</p>
+            <p className="text-[13px] font-semibold text-stone-800 truncate leading-tight group-hover/pill:text-orange-600 transition-colors">My Account</p>
             <p className="text-[11px] text-stone-400 truncate">Faceless Studio</p>
           </div>
-          <FaChevronRight className="text-[11px] text-stone-300 flex-shrink-0" />
-        </div>
+          <FaChevronRight className="text-[11px] text-stone-300 group-hover/pill:text-orange-400 flex-shrink-0 transition-colors" />
+        </Link>
 
         {/* Sign out */}
         <button

@@ -9,6 +9,7 @@ import {
     buildSlideConfigurationPrompt,
 } from "./prompts.js";
 import { getLLMAPIs } from "./getapis.js";
+import { supabase } from "../supabase.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // LLM-central.js
@@ -52,13 +53,27 @@ function createClient() {
 
 
 
-async function callLLM(systemPrompt, userPrompt) {
+async function callLLM(systemPrompt, userPrompt, options = {}) {
     const llm_apis = await getLLMAPIs();
     console.log(llm_apis);
 
+    let apisToTry = [];
+    if (options.strictCloudflare) {
+        apisToTry = llm_apis.filter(api => api.llm_provider === 'cloudfare');
+    } else {
+        const useGroq = options.storyId ? await checkUserUseGroq(options.storyId) : false;
+        if (useGroq) {
+            const groqApis = llm_apis.filter(api => api.llm_provider === 'groq');
+            const cloudflareApis = llm_apis.filter(api => api.llm_provider === 'cloudfare');
+            apisToTry = [...groqApis, ...cloudflareApis];
+        } else {
+            apisToTry = llm_apis.filter(api => api.llm_provider !== 'groq');
+        }
+    }
+
     let lastError = null;
 
-    for (const api of llm_apis) {
+    for (const api of apisToTry) {
         try {
             console.log(`Trying provider: ${api.llm_provider} (id: ${api.id})`);
 
@@ -67,6 +82,9 @@ async function callLLM(systemPrompt, userPrompt) {
                 return result;
             } else if (api.llm_provider === 'cloudfare') {
                 const result = await callCloudflare(api, systemPrompt, userPrompt);
+                return result;
+            } else if (api.llm_provider === 'groq') {
+                const result = await callGroq(api, systemPrompt, userPrompt);
                 return result;
             } else {
                 console.warn(`Unknown provider "${api.llm_provider}", skipping.`);
@@ -81,6 +99,62 @@ async function callLLM(systemPrompt, userPrompt) {
     }
 
     throw new Error(`All LLM APIs failed. Last error: ${lastError?.message}`);
+}
+
+async function checkUserUseGroq(storyId) {
+    if (!storyId) return false;
+    try {
+        const { data: storyData, error: storyError } = await supabase
+            .from("stories")
+            .select("user_id")
+            .eq("id", storyId)
+            .single();
+        if (storyError || !storyData?.user_id) {
+            console.error("Error querying user_id for storyId:", storyId, storyError);
+            return false;
+        }
+        const { data: userData, error: userError } = await supabase
+            .from("users")
+            .select("use_groq")
+            .eq("id", storyData.user_id)
+            .single();
+        if (userError) {
+            console.error("Error querying use_groq for userId:", storyData.user_id, userError);
+            return false;
+        }
+        return !!userData?.use_groq;
+    } catch (err) {
+        console.error("Error in checkUserUseGroq:", err);
+        return false;
+    }
+}
+
+async function callGroq(api, systemPrompt, userPrompt) {
+    const { OpenAI } = await import("openai");
+
+    const client = new OpenAI({
+        apiKey: api.llm_api,
+        baseURL: api.llm_url || "https://api.groq.com/openai/v1",
+    });
+
+    const response = await client.chat.completions.create({
+        model: api.model_name || "llama-3.3-70b-versatile",
+        response_format: { type: "json_object" },
+        messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+        ],
+        max_tokens: 1200,
+    });
+
+    let raw = response.choices[0]?.message?.content ?? "";
+    raw = raw.replace(/```json/g, "").replace(/```/g, "").trim();
+
+    try {
+        return JSON.parse(raw);
+    } catch {
+        throw new Error(`Groq returned invalid JSON:\n${raw}`);
+    }
 }
 
 async function callBaseten(api, systemPrompt, userPrompt) {
@@ -197,7 +271,7 @@ async function callLLMMODAL(systemPrompt, userPrompt) {
  */
 export async function llmGenerateTopics({ description, topicCount, topicString }) {
     const { systemPrompt, userPrompt } = buildGenerateTopicsPrompt({ description, topicCount, topicString });
-    return callLLM(systemPrompt, userPrompt);
+    return callLLM(systemPrompt, userPrompt, { strictCloudflare: true });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -211,7 +285,7 @@ export async function llmGenerateTopics({ description, topicCount, topicString }
  */
 export async function llmGenerateStory({ topicName, topicDescription, alreadyCreatedTitlesString, contentTheme, storyTitle, storyPromptDescription }) {
     const { systemPrompt, userPrompt } = buildGenerateStoryPrompt({ topicName, topicDescription, alreadyCreatedTitlesString, contentTheme, storyTitle, storyPromptDescription });
-    return callLLM(systemPrompt, userPrompt);
+    return callLLM(systemPrompt, userPrompt, { strictCloudflare: true });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -225,7 +299,7 @@ export async function llmGenerateStory({ topicName, topicDescription, alreadyCre
  */
 export async function llmEnhanceStorySection({ story_title, story, section_title, section_content, contentTheme }) {
     const { systemPrompt, userPrompt } = buildEnhanceStorySectionPrompt({ story_title, story, section_title, section_content, contentTheme });
-    return callLLM(systemPrompt, userPrompt);
+    return callLLM(systemPrompt, userPrompt, { strictCloudflare: true });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -234,12 +308,12 @@ export async function llmEnhanceStorySection({ story_title, story, section_title
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * @param {{ storyTitle: string, storyContent: string, basePrompt: string, imageTheme: string }} params
+ * @param {{ storyTitle: string, storyContent: string, basePrompt: string, imageTheme: string, storyId?: string }} params
  * @returns {Promise<{ modified_prompt: string }>}
  */
-export async function llmEnhanceThumbnailPrompt({ storyTitle, storyContent, basePrompt, imageTheme }) {
+export async function llmEnhanceThumbnailPrompt({ storyTitle, storyContent, basePrompt, imageTheme, storyId }) {
     const { systemPrompt, userPrompt } = buildEnhanceThumbnailPrompt({ storyTitle, storyContent, basePrompt, imageTheme });
-    return callLLM(systemPrompt, userPrompt);
+    return callLLM(systemPrompt, userPrompt, { storyId });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -262,12 +336,12 @@ export async function llmGeneratePointScript({ storyTitle, section, storyContent
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * @param {{ storyContent: string, sceneNumber: number, imageNumber: number, originalPrompt: string, imageGenerationTheme: string }} params
+ * @param {{ storyContent: string, sceneNumber: number, imageNumber: number, originalPrompt: string, imageGenerationTheme: string, storyId?: string }} params
  * @returns {Promise<{ modified_prompt: string }>}
  */
-export async function llmEnhanceImagePrompt({ storyContent, sceneNumber, imageNumber, originalPrompt, imageGenerationTheme }) {
+export async function llmEnhanceImagePrompt({ storyContent, sceneNumber, imageNumber, originalPrompt, imageGenerationTheme, storyId }) {
     const { systemPrompt, userPrompt } = buildEnhanceImagePrompt({ storyContent, sceneNumber, imageNumber, originalPrompt, imageGenerationTheme });
-    return callLLM(systemPrompt, userPrompt);
+    return callLLM(systemPrompt, userPrompt, { storyId });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -276,12 +350,12 @@ export async function llmEnhanceImagePrompt({ storyContent, sceneNumber, imageNu
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * @param {{ scene: object, scene_number: number, scene_images: object[], scene_audio_url: string, scene_audio_duration: number, ass_content: string }} params
+ * @param {{ scene: object, scene_number: number, scene_images: object[], scene_audio_url: string, scene_audio_duration: number, ass_content: string, storyId?: string }} params
  * @returns {Promise<{ slides: object[], ass_duration: number }>}
  */
-export async function llmGetSlideConfiguration({ scene, scene_number, scene_images, scene_audio_url, scene_audio_duration, ass_content }) {
+export async function llmGetSlideConfiguration({ scene, scene_number, scene_images, scene_audio_url, scene_audio_duration, ass_content, storyId }) {
     const { systemPrompt, userPrompt } = buildSlideConfigurationPrompt({
         scene, scene_number, scene_images, scene_audio_url, scene_audio_duration, ass_content,
     });
-    return callLLM(systemPrompt, userPrompt);
+    return callLLM(systemPrompt, userPrompt, { storyId });
 }

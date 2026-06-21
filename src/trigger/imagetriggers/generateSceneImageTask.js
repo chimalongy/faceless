@@ -80,6 +80,7 @@ export const generateSceneImageTask = task({
           imageNumber: i,
           originalPrompt,
           imageGenerationTheme: imageGenerationTheme,
+          storyId,
         });
         enhancedPrompt = parsed.modified_prompt || originalPrompt;
       } catch {

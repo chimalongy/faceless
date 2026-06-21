@@ -26,6 +26,7 @@ export async function getSlideConfiguration(payload) {
     scene_audio_url:      payload.scene_audio_url,
     scene_audio_duration: payload.scene_audio_duration,
     ass_content:          payload.ass_content,
+    storyId:              payload.storyId,
   });
 
   const rawSlides    = Array.isArray(parsed?.slides) ? parsed.slides : [];

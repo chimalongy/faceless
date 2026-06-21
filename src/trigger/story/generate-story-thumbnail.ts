@@ -62,6 +62,7 @@ export const generateStoryThumbnailTask = task({
         storyContent: story.content?.slice(0, 500),
         basePrompt,
         imageTheme,
+        storyId,
       });
 
       enhancedPrompt =

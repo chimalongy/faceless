@@ -11,6 +11,7 @@ create table users (
   password_hash text not null,
   first_name text,
   last_name text,
+  use_groq boolean default false,
   created_at timestamp with time zone default timezone('utc'::text, now()),
   updated_at timestamp with time zone default timezone('utc'::text, now())
 );

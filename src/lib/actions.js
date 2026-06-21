@@ -1091,3 +1091,41 @@ export async function testPostersHiveConnection(apiKey) {
     return { success: false, error: 'Could not connect to PostersHive server. Please check your network and API key.' };
   }
 }
+
+// --- User Settings ---
+
+export async function getUserSettings() {
+  const userId = await getSessionCookie();
+  if (!userId) throw new Error('Unauthorized');
+
+  const { data, error } = await supabase
+    .from('users')
+    .select('id, email, first_name, last_name, use_groq')
+    .eq('id', userId)
+    .single();
+
+  if (error) {
+    console.error('Get user settings error:', error);
+    throw new Error('Failed to retrieve user settings');
+  }
+
+  return data;
+}
+
+export async function updateUserSettings(useGroq) {
+  const userId = await getSessionCookie();
+  if (!userId) throw new Error('Unauthorized');
+
+  const { error } = await supabase
+    .from('users')
+    .update({ use_groq: useGroq })
+    .eq('id', userId);
+
+  if (error) {
+    console.error('Update user settings error:', error);
+    throw new Error('Failed to update user settings');
+  }
+
+  revalidatePath('/dashboard/my-account/settings');
+  return { success: true };
+}
