@@ -70,13 +70,29 @@ export async function POST(request) {
         const safeTitle = story.title.replace(/[^a-z0-9]/gi, "_").toLowerCase();
         const upload_destination = `stories/${storyId}/${safeTitle}_merged_${Date.now()}.mp4`;
 
-        // Trigger background task
-        const handle = await tasks.trigger("merge-frames", {
-            storyId,
-            sceneVideos,
-            upload_destination,
-            videoGenUrl:null
-        });
+        // Update story row to set is_merging: true
+        await supabase
+            .from("stories")
+            .update({ is_merging: true })
+            .eq("id", storyId);
+
+        let handle;
+        try {
+            // Trigger background task
+            handle = await tasks.trigger("merge-frames", {
+                storyId,
+                sceneVideos,
+                upload_destination,
+                videoGenUrl:null
+            });
+        } catch (err) {
+            // Reset on failure to trigger
+            await supabase
+                .from("stories")
+                .update({ is_merging: false })
+                .eq("id", storyId);
+            throw err;
+        }
 
         return NextResponse.json({
             success: true,

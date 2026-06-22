@@ -617,6 +617,7 @@ export default function StoryAccordionWrapper({
           <MergeVideosButton
             storyId={story.id}
             isEnabled={totalScenes > 0 && scenesWithVideoFrames === totalScenes}
+            isMerging={story.is_merging}
           />
         </AccordionSection>
 

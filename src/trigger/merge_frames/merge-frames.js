@@ -172,9 +172,20 @@ export const mergeFramesTask = task({
 
       });
 
+      // Reset is_merging to false on success
+      await supabase
+        .from("stories")
+        .update({ is_merging: false })
+        .eq("id", storyId);
+
       return { success: true, storyId, videoUrl: public_url };
     } catch (err) {
       logger.error("merge-frames failed", { error: err, storyId });
+      // Reset is_merging to false on error
+      await supabase
+        .from("stories")
+        .update({ is_merging: false })
+        .eq("id", storyId);
       return { success: false, storyId, videoUrl: null, error: err };
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
