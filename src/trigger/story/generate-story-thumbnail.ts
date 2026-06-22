@@ -71,7 +71,6 @@ export const generateStoryThumbnailTask = task({
       });
 
       enhancedPrompt = parsed.modified_prompt || basePrompt;
-      thumbnailText = parsed.thumbnail_text || story.title;
     } catch (err: any) {
       logger.warn(
         "Failed to enhance thumbnail prompt",
@@ -223,14 +222,39 @@ washed out colors
         return lines;
       };
 
+      // Get settings from topic database
+      const textPercentage = topic.thumbnail_text_size || 7.5;
+      const textAlign = topic.thumbnail_text_align || 'left';
+      const textPosition = topic.thumbnail_text_position || 'center';
+
       const lines = wrapText(thumbnailText.toUpperCase(), 11);
-      const fontSize = 140;
+      
+      // Calculate font size (percentage of image width = 1920)
+      const fontSize = Math.round(1920 * textPercentage / 100);
       const lineHeight = fontSize * 1.15;
-      const strokeWidth = 16;
+      const strokeWidth = Math.max(4, Math.round(fontSize * 0.115)); // Scale stroke with font size
       
       let combinedPaths = '';
-      const startX = 120;
-      const startY = (1080 - (lines.length * lineHeight)) / 2 + 20;
+      
+      // Horizontal Position & Alignment Anchor
+      let startX = 120;
+      let anchor: any = 'left top';
+      if (textAlign === 'center') {
+        startX = 960; // 1920 / 2
+        anchor = 'center top';
+      } else if (textAlign === 'right') {
+        startX = 1800; // 1920 - 120
+        anchor = 'right top';
+      }
+
+      // Vertical Position startY
+      const totalHeight = lines.length * lineHeight;
+      let startY = (1080 - totalHeight) / 2 + 20; // default center
+      if (textPosition === 'top') {
+        startY = 120;
+      } else if (textPosition === 'bottom') {
+        startY = 1080 - totalHeight - 120;
+      }
 
       lines.forEach((line, index) => {
         const y = startY + index * lineHeight;
@@ -238,7 +262,7 @@ washed out colors
           x: startX,
           y: y,
           fontSize: fontSize,
-          anchor: 'left top'
+          anchor: anchor
         });
         
         // Background Stroke

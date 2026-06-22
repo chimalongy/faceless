@@ -367,6 +367,11 @@ export async function updateTopicConfig(formData) {
   const story_thumbnail_prompt = formData.get('story_thumbnail_prompt') || null;
   const thumbnail_font = formData.get('thumbnail_font') || 'Inter-Bold.ttf';
 
+  const rawSize = formData.get('thumbnail_text_size');
+  const thumbnail_text_size = rawSize ? parseInt(rawSize) : 13;
+  const thumbnail_text_align = formData.get('thumbnail_text_align') || 'left';
+  const thumbnail_text_position = formData.get('thumbnail_text_position') || 'center';
+
   if (!topicId) throw new Error('Topic ID is required');
 
   const { error } = await supabase
@@ -374,7 +379,10 @@ export async function updateTopicConfig(formData) {
     .update({ 
       image_generation_theme, 
       story_thumbnail_prompt, 
-      thumbnail_font 
+      thumbnail_font,
+      thumbnail_text_size,
+      thumbnail_text_align,
+      thumbnail_text_position
     })
     .eq('id', topicId)
     .eq('user_id', userId);

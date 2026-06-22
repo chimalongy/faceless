@@ -14,7 +14,7 @@ export default async function TopicConfigurePage({ params }) {
   // Fetch topic configuration fields
   const { data: topic, error } = await supabase
     .from('topics')
-    .select('id, name, description, image_generation_theme, story_thumbnail_prompt, thumbnail_font, channel_id')
+    .select('id, name, description, image_generation_theme, story_thumbnail_prompt, thumbnail_font, thumbnail_text_size, thumbnail_text_align, thumbnail_text_position, channel_id')
     .eq('id', topicId)
     .eq('user_id', userId)
     .single();
