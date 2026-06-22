@@ -71,9 +71,9 @@ export const generateScriptTask = task({
     const results = await generatePointScript.batchTriggerAndWait(batchItems);
 
     // Process Introduction result
-    const introResult = results[0];
+    const introResult = results.runs[0];
     if (!introResult.ok) {
-      logger.error("❌ Introduction generation failed", { error: introResult.error });
+      logger.error("❌ Introduction generation failed", { error: (introResult as any).error });
       throw new Error("Introduction script failed");
     }
 
@@ -86,9 +86,9 @@ export const generateScriptTask = task({
 
     // Process Points results
     for (let index = 0; index < content.points.length; index++) {
-      const pointResult = results[index + 1];
+      const pointResult = results.runs[index + 1];
       if (!pointResult.ok) {
-        logger.error(`❌ Point ${index} generation failed`, { error: pointResult.error });
+        logger.error(`❌ Point ${index} generation failed`, { error: (pointResult as any).error });
         throw new Error(`Point ${index} script failed`);
       }
 

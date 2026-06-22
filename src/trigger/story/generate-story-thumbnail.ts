@@ -4,6 +4,9 @@ import { llmEnhanceThumbnailPrompt } from "../../lib/apis/LLM-central.js";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { supabase } from "../../lib/supabase";
 import { r2 } from "../../lib/r2";
+import sharp from "sharp";
+import TextToSVG from "text-to-svg";
+import * as path from "path";
 
 const MODAL_ENDPOINT =
   "https://geniusdomainnames--microsoft-lens-generate-endpoint.modal.run";
@@ -15,8 +18,9 @@ export const generateStoryThumbnailTask = task({
     storyId: string;
     channelId: string;
     topicId: string;
+    font?: string;
   }) => {
-    const { storyId, channelId, topicId } = payload;
+    const { storyId, channelId, topicId, font } = payload;
 
     logger.info("🎬 Starting story thumbnail generation", {
       storyId,
@@ -55,9 +59,10 @@ export const generateStoryThumbnailTask = task({
     logger.info("🧠 Enhancing thumbnail prompt");
 
     let enhancedPrompt = basePrompt;
+    let thumbnailText = story.title;
 
     try {
-      const parsed = await llmEnhanceThumbnailPrompt({
+      const parsed: any = await llmEnhanceThumbnailPrompt({
         storyTitle: story.title,
         storyContent: story.content?.slice(0, 500),
         basePrompt,
@@ -65,8 +70,8 @@ export const generateStoryThumbnailTask = task({
         storyId,
       });
 
-      enhancedPrompt =
-        parsed.modified_prompt || basePrompt;
+      enhancedPrompt = parsed.modified_prompt || basePrompt;
+      thumbnailText = parsed.thumbnail_text || story.title;
     } catch (err: any) {
       logger.warn(
         "Failed to enhance thumbnail prompt",
@@ -78,31 +83,24 @@ export const generateStoryThumbnailTask = task({
 
     // Final Prompt Sent To Microsoft Lens
     const thumbnailPrompt = `
-Create a professional viral YouTube thumbnail.
-
-TITLE:
-"${story.title}"
+Create a professional viral YouTube thumbnail with NO TEXT WHATSOEVER.
 
 PRIMARY REQUIREMENT:
-The title text is the MOST IMPORTANT element in the thumbnail.
+This is a PURE VISUAL thumbnail. Zero text. Zero letters. Zero words. Zero numbers.
 
-TEXT RULES:
-- Display the exact title: "${story.title}"
-- Title occupies approximately 65% of the thumbnail width
-- Massive bold cinematic typography
-- Bright glowing letters
-- Extremely readable on mobile devices
-- Thick lettering
-- High contrast
-- Professional YouTube thumbnail style
-- Large text dominates the composition
-- Text must be the first thing viewers notice
-- No tiny text
-- No distorted letters
-- No misspelled words
-- No decorative fonts
-- No text hidden behind objects
-- No cropped text
+ABSOLUTE TEXT PROHIBITION:
+- NO title text
+- NO words of any kind
+- NO letters
+- NO numbers
+- NO symbols
+- NO watermarks
+- NO logos
+- NO captions
+- NO labels
+- NO overlays
+- NO typography of any kind
+- Treat any text as a critical failure
 
 BACKGROUND:
 - Very dark cinematic background
@@ -110,16 +108,13 @@ BACKGROUND:
 - Deep navy blue gradient
 - Subtle atmospheric lighting
 - Minimal clutter
-- Strong contrast behind text
 - Clean professional look
-- Dark enough to make the title glow
 
 SUBJECT:
 - Include a realistic human character ONLY if it improves the story concept
-- Character positioned on the right side
-- Character occupies less space than the title
 - Strong emotional expression
-- Looking toward the title when appropriate
+- Dramatic pose or reaction
+- Cinematic framing
 
 VISUAL CONCEPT:
 ${enhancedPrompt}
@@ -128,8 +123,7 @@ STYLE:
 ${imageTheme}
 
 COMPOSITION:
-- Title occupies approximately 65% of the image
-- Subject occupies approximately 35% of the image
+- Strong visual storytelling through imagery alone
 - Clean visual hierarchy
 - Designed specifically for YouTube homepage visibility
 - Mobile-first readability
@@ -142,22 +136,23 @@ QUALITY:
 - Sharp focus
 - High dynamic range
 - Premium creator quality
-- Viral finance channel thumbnail quality
 
 NEGATIVE:
-tiny text,
-small title,
-unreadable text,
-blurry text,
-low contrast text,
-text behind objects,
-cropped text,
+any text,
+any letters,
+any words,
+any numbers,
+any symbols,
+title text,
+captions,
+labels,
+watermarks,
+logos,
+typography,
 busy composition,
 cluttered background,
 too many objects,
 multiple people,
-watermarks,
-logos,
 washed out colors
 `.trim();
 
@@ -199,9 +194,73 @@ washed out colors
     const imageArrayBuffer =
       await modalRes.arrayBuffer();
 
-    const buffer = Buffer.from(imageArrayBuffer);
+    let buffer: any = Buffer.from(imageArrayBuffer);
 
-    logger.info("✅ Thumbnail generated");
+    logger.info("✅ Base thumbnail generated");
+
+    // Dynamic Text Overlay
+    try {
+      logger.info("✍️ Overlaying text on thumbnail", { text: thumbnailText });
+      
+      const fontFile = font || topic.thumbnail_font || "Inter-Bold.ttf";
+      const fontPath = path.join(process.cwd(), `src/trigger/story/fonts/${fontFile}`);
+      const textToSVG = TextToSVG.loadSync(fontPath);
+
+      // Simple wrapping utility
+      const wrapText = (txt: string, maxChars = 11) => {
+        const words = txt.split(' ');
+        const lines: string[] = [];
+        let currentLine = '';
+        for (const word of words) {
+          if ((currentLine + ' ' + word).trim().length <= maxChars) {
+            currentLine = (currentLine + ' ' + word).trim();
+          } else {
+            if (currentLine) lines.push(currentLine);
+            currentLine = word;
+          }
+        }
+        if (currentLine) lines.push(currentLine);
+        return lines;
+      };
+
+      const lines = wrapText(thumbnailText.toUpperCase(), 11);
+      const fontSize = 140;
+      const lineHeight = fontSize * 1.15;
+      const strokeWidth = 16;
+      
+      let combinedPaths = '';
+      const startX = 120;
+      const startY = (1080 - (lines.length * lineHeight)) / 2 + 20;
+
+      lines.forEach((line, index) => {
+        const y = startY + index * lineHeight;
+        const pathData = textToSVG.getD(line, {
+          x: startX,
+          y: y,
+          fontSize: fontSize,
+          anchor: 'left top'
+        });
+        
+        // Background Stroke
+        combinedPaths += `<path d="${pathData}" fill="none" stroke="black" stroke-width="${strokeWidth}" stroke-linejoin="round" stroke-linecap="round" />`;
+        // Foreground Fill
+        const fill = index === 0 ? '#FBBF24' : '#FFFFFF';
+        combinedPaths += `<path d="${pathData}" fill="${fill}" />`;
+      });
+
+      const svgString = `<svg width="1920" height="1080" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
+        ${combinedPaths}
+      </svg>`;
+
+      buffer = await sharp(buffer)
+        .resize(1920, 1080)
+        .composite([{ input: Buffer.from(svgString) }])
+        .toBuffer();
+
+      logger.info("✍️ Overlay completed successfully");
+    } catch (err: any) {
+      logger.error("❌ Failed to overlay text on thumbnail, using raw image instead", { error: err.message });
+    }
 
     logger.info("☁️ Uploading to R2");
 

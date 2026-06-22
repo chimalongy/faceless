@@ -357,6 +357,37 @@ export async function updateMusicVolume(formData) {
   revalidatePath(`/dashboard/channels/${channelId}/v1/topics/${topicId}/background-music`);
 }
 
+export async function updateTopicConfig(formData) {
+  const userId = await getSessionCookie();
+  if (!userId) throw new Error('Unauthorized');
+
+  const topicId = formData.get('topicId');
+  const channelId = formData.get('channelId');
+  const image_generation_theme = formData.get('image_generation_theme') || null;
+  const story_thumbnail_prompt = formData.get('story_thumbnail_prompt') || null;
+  const thumbnail_font = formData.get('thumbnail_font') || 'Inter-Bold.ttf';
+
+  if (!topicId) throw new Error('Topic ID is required');
+
+  const { error } = await supabase
+    .from('topics')
+    .update({ 
+      image_generation_theme, 
+      story_thumbnail_prompt, 
+      thumbnail_font 
+    })
+    .eq('id', topicId)
+    .eq('user_id', userId);
+
+  if (error) {
+    console.error('Update topic config error:', error);
+    throw new Error('Failed to update topic config');
+  }
+
+  revalidatePath(`/dashboard/channels/${channelId}/v1/topics/${topicId}`);
+  return { success: true };
+}
+
 export async function deleteTopic(formData) {
   const userId = await getSessionCookie();
   if (!userId) throw new Error('Unauthorized');

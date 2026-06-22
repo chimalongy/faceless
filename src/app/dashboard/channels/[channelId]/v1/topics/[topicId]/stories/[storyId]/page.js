@@ -43,15 +43,19 @@ import StoryAccordionWrapper from './StoryAccordionWrapper';
 
 export default async function StoryDetailPage({ params }) {
   const { channelId, topicId, storyId } = await params;
-  const [channel] = await Promise.all([
+  const [channel, { data: story }, { data: topic }] = await Promise.all([
     getChannel(channelId),
+    supabase
+      .from('stories')
+      .select('*, story_images(*), story_audio(*), story_video_frames(*)')
+      .eq('id', storyId)
+      .single(),
+    supabase
+      .from('topics')
+      .select('thumbnail_font')
+      .eq('id', topicId)
+      .single()
   ]);
-
-  const { data: story } = await supabase
-    .from('stories')
-    .select('*, story_images(*), story_audio(*), story_video_frames(*)')
-    .eq('id', storyId)
-    .single();
 
   if (!story) {
     notFound();
@@ -203,6 +207,7 @@ export default async function StoryDetailPage({ params }) {
         scenesWithImages={scenesWithImages}
         voices={voices || []}
         wordCount={wordCount}
+        topicFont={topic?.thumbnail_font || 'Inter-Bold.ttf'}
       />
 
     </div>

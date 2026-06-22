@@ -13,6 +13,7 @@ import {
   FaArrowRight,
   FaCheckCircle,
   FaSpinner,
+  FaCog,
 } from 'react-icons/fa';
 import { notFound } from 'next/navigation';
 import { getChannel } from '../../../../../../../lib/actions';
@@ -124,6 +125,13 @@ export default async function TopicDetailsPage({ params }) {
         </div>
 
         <div className="flex items-center gap-3 self-start sm:self-auto flex-shrink-0">
+          <Link
+            href={`/dashboard/channels/${channelId}/v1/topics/${topicId}/configure`}
+            className="inline-flex items-center gap-2 bg-white border border-gray-200 text-stone-600 text-sm font-semibold px-4 py-2.5 rounded-xl hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 transition-all no-underline"
+          >
+            <FaCog className="text-xs" />
+            <span className="hidden sm:inline">Settings</span>
+          </Link>
           <Link
             href={`/dashboard/channels/${channelId}/v1/topics/${topicId}/background-music`}
             className="inline-flex items-center gap-2 bg-white border border-gray-200 text-stone-600 text-sm font-semibold px-4 py-2.5 rounded-xl hover:border-purple-300 hover:bg-purple-50 hover:text-purple-600 transition-all no-underline"

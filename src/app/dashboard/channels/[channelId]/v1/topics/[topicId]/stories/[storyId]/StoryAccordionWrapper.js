@@ -148,6 +148,7 @@ export default function StoryAccordionWrapper({
   scenesWithImages: initialScenesWithImages,
   voices,
   wordCount,
+  topicFont,
 }) {
   const [currentStory, setCurrentStory] = useState(initialStory);
   const [currentImages, setCurrentImages] = useState(initialImages);
@@ -255,6 +256,7 @@ export default function StoryAccordionWrapper({
               storyId={storyId}
               initialThumbnailUrl={story.thumbnail_url}
               storyTitle={story.title}
+              topicFont={topicFont}
             />
             <div className="bg-orange-50 rounded-xl p-4 border border-orange-100">
               <h4 className="text-sm font-semibold text-stone-800 mb-2 flex items-center gap-2">

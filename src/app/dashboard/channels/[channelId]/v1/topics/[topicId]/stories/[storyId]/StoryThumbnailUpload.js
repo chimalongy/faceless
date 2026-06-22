@@ -5,9 +5,37 @@ import { FaCamera, FaTrashAlt, FaUpload, FaSpinner, FaMagic, FaDownload } from '
 import { updateStoryThumbnail, deleteStoryThumbnail } from '../../../../../../../../../lib/actions';
 import toast from 'react-hot-toast';
 
-export default function StoryThumbnailUpload({ channelId, topicId, storyId, initialThumbnailUrl, storyTitle }) {
+export default function StoryThumbnailUpload({ channelId, topicId, storyId, initialThumbnailUrl, storyTitle, topicFont }) {
   const [isUploading, setIsUploading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+
+  const availableFonts = [
+    { name: 'Inter Bold', value: 'Inter-Bold.ttf', family: 'Inter' },
+    { name: 'Aclonica Regular', value: 'Aclonica-Regular.ttf', family: 'Aclonica' },
+    { name: 'Barriecito Regular', value: 'Barriecito-Regular.ttf', family: 'Barriecito' },
+    { name: 'Love Ya Like A Sister', value: 'LoveYaLikeASister-Regular.ttf', family: 'Love Ya Like A Sister' },
+    { name: 'Manrope Bold', value: 'Manrope-Bold.ttf', family: 'Manrope' },
+    { name: 'Manrope ExtraBold', value: 'Manrope-ExtraBold.ttf', family: 'Manrope' },
+    { name: 'Protest Revolution', value: 'ProtestRevolution-Regular.ttf', family: 'Protest Revolution' },
+    { name: 'Rammetto One', value: 'RammettoOne-Regular.ttf', family: 'Rammetto One' },
+  ];
+
+  const wrapText = (txt, maxChars = 11) => {
+    if (!txt) return [];
+    const words = txt.toUpperCase().split(' ');
+    const lines = [];
+    let currentLine = '';
+    for (const word of words) {
+      if ((currentLine + ' ' + word).trim().length <= maxChars) {
+        currentLine = (currentLine + ' ' + word).trim();
+      } else {
+        if (currentLine) lines.push(currentLine);
+        currentLine = word;
+      }
+    }
+    if (currentLine) lines.push(currentLine);
+    return lines;
+  };
 
   const handleDownload = async () => {
     if (!initialThumbnailUrl) return;
@@ -161,13 +189,35 @@ export default function StoryThumbnailUpload({ channelId, topicId, storyId, init
       {/* Current Thumbnail Display */}
       {initialThumbnailUrl ? (
         <div className="space-y-3">
-          <div className="relative group">
+          <div className="relative group overflow-hidden rounded-xl">
             <div className="aspect-video rounded-xl overflow-hidden border-2 border-cyan-200 shadow-lg">
               <img
                 src={initialThumbnailUrl}
                 alt={`Thumbnail for ${storyTitle}`}
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
+            </div>
+
+            {/* Live Text Overlay Preview */}
+            <div className="absolute inset-0 flex flex-col justify-center items-start pl-[8%] pointer-events-none select-none">
+              <div 
+                className="font-black leading-[1.1] text-[clamp(1.2rem,5vw,3.5rem)] tracking-tight uppercase"
+                style={{
+                  fontFamily: availableFonts.find(f => f.value === topicFont)?.family || 'Inter',
+                  textShadow: '3px 3px 0 #000, -3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 0 3px 0 #000, 0 -3px 0 #000, 3px 0 0 #000, -3px 0 0 #000, 4px 4px 6px rgba(0,0,0,0.8)'
+                }}
+              >
+                {wrapText(storyTitle).map((line, index) => (
+                  <div key={index} style={{ color: index === 0 ? '#FBBF24' : '#FFFFFF' }}>
+                    {line}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Badge for clarification */}
+            <div className="absolute top-3 left-3 bg-black/75 backdrop-blur-md text-[10px] font-bold text-white px-2 py-1 rounded-md border border-white/10 uppercase tracking-wider select-none pointer-events-none">
+              Live Font Preview
             </div>
             <div className={`absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent ${isUploading ? 'opacity-100 backdrop-blur-sm' : 'opacity-0 group-hover:opacity-100'} transition-all duration-300 rounded-xl`}>
               <div className="absolute bottom-4 left-4 right-4 hidden sm:flex items-center justify-between gap-2">

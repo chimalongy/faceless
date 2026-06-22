@@ -16,7 +16,7 @@ export async function POST(request) {
         }
 
         const body = await request.json();
-        const { storyId, channelId, topicId } = body;
+        const { storyId, channelId, topicId, font } = body;
 
         if (!storyId || !channelId || !topicId) {
             return NextResponse.json(
@@ -29,7 +29,8 @@ export async function POST(request) {
         const handle = await tasks.trigger("generate-story-thumbnail", {
             storyId,
             channelId,
-            topicId
+            topicId,
+            font
         });
 
         return NextResponse.json({

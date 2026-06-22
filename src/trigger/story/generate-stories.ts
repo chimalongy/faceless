@@ -146,16 +146,18 @@ export const generateStoriesTask = task({
         const results = await generateStoryEnhancerTask.batchTriggerAndWait(batchItems);
 
         // Process results
-        const introResult = results[0];
+        const introResult = results.runs[0];
         if (!introResult.ok) {
-          throw new Error(`Story enhancer failed for Introduction: ${introResult.error?.message || JSON.stringify(introResult.error)}`);
+          const err = (introResult as any).error;
+          throw new Error(`Story enhancer failed for Introduction: ${err?.message || JSON.stringify(err)}`);
         }
         parsed.content.introduction = introResult.output.content;
 
         for (let j = 0; j < parsed.content.points.length; j++) {
-          const pointResult = results[j + 1];
+          const pointResult = results.runs[j + 1];
           if (!pointResult.ok) {
-            throw new Error(`Story enhancer failed for point "${parsed.content.points[j].point_title}": ${pointResult.error?.message || JSON.stringify(pointResult.error)}`);
+            const err = (pointResult as any).error;
+            throw new Error(`Story enhancer failed for point "${parsed.content.points[j].point_title}": ${err?.message || JSON.stringify(err)}`);
           }
           parsed.content.points[j].story = pointResult.output.content;
         }

@@ -179,7 +179,8 @@ export const generateScriptFrames = task({
         payload: item.payload
       }));
 
-      const runs = await getScriptVideo.batchTriggerAndWait(batchItems);
+      const batchResult = await getScriptVideo.batchTriggerAndWait(batchItems);
+      const runs = batchResult.runs;
 
       // Process batch trigger results
       for (let i = 0; i < runs.length; i++) {

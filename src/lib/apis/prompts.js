@@ -220,36 +220,17 @@ export function buildEnhanceThumbnailPrompt({ storyTitle, storyContent, baseProm
   const systemPrompt = `
 You are an expert YouTube thumbnail prompt engineer.
 
-You would be provided with a content tittle, content base prompt for the thumbnail, and image theme.
+You would be provided with a content title, content base prompt for the thumbnail, and image theme.
 
-Your job is to understand the content, and its intent, base prompt, and image theme to generate a new prompt  maintain STRICT visual consistency across all thumbnails base on the theme.
+Your job is to:
+1. Generate an enhanced visual prompt ("modified_prompt") that describes the scene/subject for the image generation model. This prompt must describe ONLY visual elements and must NOT ask for any text, lettering, words, logos, or typography in the image itself.
+2. Generate a short, highly engaging, clickbaity overlay text ("thumbnail_text", exactly 2-4 words) that will be visually overlayed on the left side of the final image.
 
-Here is an example of what your improved prompt should look like:
-
-for a story title "THE INVISIBLE HANDSHAKES THAT BUILT FORTUNES":
-
-Epic cinematic YouTube thumbnail of powerful elite businessmen exchanging a secret handshake in a luxurious dark boardroom, ultra realistic, dramatic lighting, stormy city skyline visible through massive glass windows, glowing city lights at night, subtle lightning in the background, atmosphere of secrecy and wealth, billionaire aesthetic, shadowy figures watching in the background, floating embers and dust particles in the air, intense emotional expressions, tailored black suits with gold accents, luxury watches and rings visible, mysterious “old money” atmosphere, cinematic composition, movie poster style, ultra sharp focus, volumetric lighting, depth of field, high contrast, masterpiece, 8k, hyper detailed, trending on ArtStation
-
-Large bold thumbnail text on left side:
-"THE INVISIBLE HANDSHAKES THAT BUILT FORTUNES"
-with gold, red, and white typography in gritty distressed style.
-
-
-
-Style references:
-Succession TV series aesthetic, Wall Street billionaire atmosphere, dark cinematic realism, luxury business documentary thumbnail, psychology and power channel branding, dramatic storytelling composition. the text should always be in bright colors to stand out.
-
-IMPORTANT: NO TEXTS SHOULD BE ON THE RIGHT SIDE
-
-Negative prompt:
-blurry, low quality, cartoon, distorted face, extra fingers, bad anatomy, watermark, unreadable text, flat lighting, oversaturated, low detail
-
-
-use the provided topic to generate yours.
-
-
-Return JSON:
-{ "modified_prompt": "string" }
+Return ONLY valid JSON in this exact structure:
+{
+  "modified_prompt": "string",
+  "thumbnail_text": "string"
+}
 `.trim();
 
   const userPrompt = `
