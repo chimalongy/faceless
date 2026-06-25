@@ -35,7 +35,8 @@ export async function GET() {
     return NextResponse.json({ deployments: (data ?? []).map(sanitize) });
   } catch (err) {
     if (err.message === 'UNAUTHORIZED') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('GET /api/admin/trigger-deployment error:', err);
+    return NextResponse.json({ error: err.message || String(err) }, { status: 500 });
   }
 }
 
@@ -56,7 +57,8 @@ export async function POST(request) {
     return NextResponse.json({ deployment: sanitize(data) }, { status: 201 });
   } catch (err) {
     if (err.message === 'UNAUTHORIZED') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('POST /api/admin/trigger-deployment error:', err);
+    return NextResponse.json({ error: err.message || String(err) }, { status: 500 });
   }
 }
 
@@ -101,7 +103,8 @@ export async function PATCH(request) {
     return NextResponse.json({ deployment: data });
   } catch (err) {
     if (err.message === 'UNAUTHORIZED') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('PATCH /api/admin/trigger-deployment error:', err);
+    return NextResponse.json({ error: err.message || String(err) }, { status: 500 });
   }
 }
 
@@ -131,8 +134,8 @@ export async function PUT(request) {
     return NextResponse.json({ deployment: sanitize(data) });
   } catch (err) {
     if (err.message === 'UNAUTHORIZED') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    console.error('PUT trigger-deployment:', err);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('PUT /api/admin/trigger-deployment error:', err);
+    return NextResponse.json({ error: err.message || String(err) }, { status: 500 });
   }
 }
 
@@ -149,6 +152,7 @@ export async function DELETE(request) {
     return NextResponse.json({ success: true });
   } catch (err) {
     if (err.message === 'UNAUTHORIZED') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('DELETE /api/admin/trigger-deployment error:', err);
+    return NextResponse.json({ error: err.message || String(err) }, { status: 500 });
   }
 }

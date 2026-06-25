@@ -21,34 +21,34 @@ const parsed = Object.fromEntries(
 // hardcoding them causes wrong paths in local dev on Windows.
 const KEYS_TO_DELETE = ["FFMPEG_PATH", "FFPROBE_PATH"];
 
-process.env.TRIGGER_SECRET_KEY = "tr_dev_dMMzkfTx0xLIhWcG2vzr";
+process.env.TRIGGER_SECRET_KEY = "tr_dev_0YUhdHbjTSIUTf1mCGrr";
 
 // Delete stale keys then upload fresh vars — dev
 for (const key of KEYS_TO_DELETE) {
   try {
-    await envvars.delete("proj_ocrnikuwoeibypadxobk", "dev", key);
+    await envvars.delete("proj_judbtcucvoughctrpomv", "dev", key);
     console.log(`🗑  Deleted ${key} from dev`);
   } catch {
     // Key may not exist — that's fine
   }
 }
-await envvars.upload("proj_ocrnikuwoeibypadxobk", "dev", {
+await envvars.upload("proj_judbtcucvoughctrpomv", "dev", {
   variables: parsed,
   override: true,
 });
 
-process.env.TRIGGER_SECRET_KEY = "tr_prod_dJbF3mAjMycTma7QKZ0O";
+process.env.TRIGGER_SECRET_KEY = "tr_prod_n2SOyhHIbaqkQl7uMb1j";
 
 // Delete stale keys then upload fresh vars — prod
 for (const key of KEYS_TO_DELETE) {
   try {
-    await envvars.delete("proj_ocrnikuwoeibypadxobk", "prod", key);
+    await envvars.delete("proj_judbtcucvoughctrpomv", "prod", key);
     console.log(`🗑  Deleted ${key} from prod`);
   } catch {
     // Key may not exist — that's fine
   }
 }
-await envvars.upload("proj_ocrnikuwoeibypadxobk", "prod", {
+await envvars.upload("proj_judbtcucvoughctrpomv", "prod", {
   variables: parsed,
   override: true,
 });
