@@ -29,7 +29,20 @@ export const generateScriptFrames = task({
       .eq("id", storyId)
       .single();
 
-    if (storyError) throw storyError;
+    if (storyError || !story) throw storyError || new Error("Story not found");
+
+    // Fetch user settings (endpoints)
+    const { data: userSettings, error: userSettingsError } = await supabase
+      .from("users")
+      .select("transcription_endpoint")
+      .eq("id", story.user_id)
+      .single();
+
+    if (userSettingsError) {
+      logger.error("Error fetching user transcription_endpoint preference", { userSettingsError });
+    }
+
+    const transcriptionEndpoint = userSettings?.transcription_endpoint || "https://me-chimaobi--whisper-api-optimized-whisperservice-transcribe.modal.run";
 
     const safeTitle = story.title.replace(/[^a-z0-9]/gi, "_").toLowerCase();
 
@@ -111,7 +124,7 @@ export const generateScriptFrames = task({
           });
 
           const transcription_response = await axios.post(
-            "https://me-chimaobi--whisper-api-optimized-whisperservice-transcribe.modal.run",
+            transcriptionEndpoint,
             {
               url: scene_audio_url,
             }

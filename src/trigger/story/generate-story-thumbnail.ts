@@ -56,6 +56,19 @@ export const generateStoryThumbnailTask = task({
     const basePrompt = topic.story_thumbnail_prompt;
     const imageTheme = topic.image_generation_theme;
 
+    // Fetch user settings (endpoints)
+    const { data: userSettings, error: userSettingsError } = await supabase
+      .from("users")
+      .select("thumbnail_endpoint")
+      .eq("id", story.user_id)
+      .single();
+
+    if (userSettingsError) {
+      logger.error("Error fetching user thumbnail_endpoint preference", { userSettingsError });
+    }
+
+    const thumbnailEndpoint = userSettings?.thumbnail_endpoint || MODAL_ENDPOINT;
+
     logger.info("🧠 Enhancing thumbnail prompt");
 
     let enhancedPrompt = basePrompt;
@@ -169,7 +182,7 @@ washed out colors
 
     logger.info("✅ Calling Modal Service");
 
-    const modalRes = await fetch(MODAL_ENDPOINT, {
+    const modalRes = await fetch(thumbnailEndpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

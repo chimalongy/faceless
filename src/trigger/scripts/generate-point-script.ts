@@ -6,6 +6,7 @@ type GeneratePointScriptPayload = {
   storyId: string;
   section: string;
   contentTheme?: string;
+  imageGenerationTheme?: string;
 };
 
 type Scene = {
@@ -26,7 +27,7 @@ export const generatePointScript = task({
   id: "generate-point-script",
 
   run: async (payload: GeneratePointScriptPayload) => {
-    const { storyId, section, contentTheme } = payload;
+    const { storyId, section, contentTheme, imageGenerationTheme } = payload;
 
     // logger.info("📝 Generating script...", { storyId, section });
  logger.info("Generating script for section...");
@@ -57,6 +58,7 @@ export const generatePointScript = task({
       section,
       storyContent: story.content,
       contentTheme,
+      imageGenerationTheme,
     });
     logger.info("🤖 AI response received");
 

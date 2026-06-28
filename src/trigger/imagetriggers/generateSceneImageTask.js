@@ -95,7 +95,8 @@ export const generateSceneImageTask = task({
         sceneNumber,
         destinationPath,
         enhancedPrompt,
-        logger
+        logger,
+        storyId
       );
 
       if (!sceneImage.success || !sceneImage.url) {

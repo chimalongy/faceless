@@ -19,7 +19,7 @@ export const generateSceneAudioTask = task({
         // 🔹 Fetch story
         const { data: story, error: storyError } = await supabase
             .from("stories")
-            .select("id, title, generated_script, channel_id")
+            .select("id, title, generated_script, channel_id, user_id")
             .eq("id", storyId)
             .single();
 
@@ -39,6 +39,19 @@ export const generateSceneAudioTask = task({
         }
 
         const voiceName = channel?.narrator_voice || "af_heart";
+
+        // 🔹 Fetch user settings (endpoints)
+        const { data: userSettings, error: userSettingsError } = await supabase
+            .from("users")
+            .select("tts_endpoint")
+            .eq("id", story.user_id)
+            .single();
+
+        if (userSettingsError) {
+            logger.error("Error fetching user tts_endpoint preference", { userSettingsError });
+        }
+        
+        const ttsEndpoint = userSettings?.tts_endpoint || "https://geniusdomainnames--kokoro-tts-web.modal.run/synthesize";
 
         let scenes = [];
 
@@ -92,7 +105,7 @@ export const generateSceneAudioTask = task({
 
             // 🔹 Call the exact Kokoro TTS synthesis endpoint requested by the user
             const modalResponse = await fetch(
-                "https://geniusdomainnames--kokoro-tts-web.modal.run/synthesize",
+                ttsEndpoint,
                 {
                     method: "POST",
                     headers: {

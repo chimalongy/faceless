@@ -2,6 +2,7 @@
 
 import { supabase } from '../lib/supabase';
 import { getSessionCookie } from '../lib/auth';
+import { getAdminCookie } from './adminAuth';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { videoScript } from '../../samplefiles/sample_script';
@@ -151,7 +152,7 @@ export async function updateChannelMedia(formData) {
   }
 }
 
-export async function updateChannelConfigurations(channelId, config, contentTheme, narratorVoice) {
+export async function updateChannelConfigurations(channelId, config, contentTheme, narratorVoice, description) {
   const userId = await getSessionCookie();
   if (!userId) throw new Error('Unauthorized');
 
@@ -166,6 +167,7 @@ export async function updateChannelConfigurations(channelId, config, contentThem
         configurations: JSON.stringify(config),
         content_theme: contentTheme,
         narrator_voice: narratorVoice,
+        description: description,
       })
       .eq('id', channelId)
       .eq('user_id', userId);
@@ -363,6 +365,7 @@ export async function updateTopicConfig(formData) {
 
   const topicId = formData.get('topicId');
   const channelId = formData.get('channelId');
+  const description = formData.get('description') || null;
   const image_generation_theme = formData.get('image_generation_theme') || null;
   const story_thumbnail_prompt = formData.get('story_thumbnail_prompt') || null;
   const thumbnail_font = formData.get('thumbnail_font') || 'Inter-Bold.ttf';
@@ -377,6 +380,7 @@ export async function updateTopicConfig(formData) {
   const { error } = await supabase
     .from('topics')
     .update({ 
+      description,
       image_generation_theme, 
       story_thumbnail_prompt, 
       thumbnail_font,
@@ -1139,7 +1143,7 @@ export async function getUserSettings() {
 
   const { data, error } = await supabase
     .from('users')
-    .select('id, email, first_name, last_name, use_groq')
+    .select('id, email, first_name, last_name, use_groq, image_gen_model, tts_endpoint, thumbnail_endpoint, transcription_endpoint')
     .eq('id', userId)
     .single();
 
@@ -1151,13 +1155,13 @@ export async function getUserSettings() {
   return data;
 }
 
-export async function updateUserSettings(useGroq) {
+export async function updateUserSettings(updates) {
   const userId = await getSessionCookie();
   if (!userId) throw new Error('Unauthorized');
 
   const { error } = await supabase
     .from('users')
-    .update({ use_groq: useGroq })
+    .update(updates)
     .eq('id', userId);
 
   if (error) {
@@ -1166,5 +1170,87 @@ export async function updateUserSettings(useGroq) {
   }
 
   revalidatePath('/dashboard/my-account/settings');
+  return { success: true };
+}
+
+export async function getModalEndpoints() {
+  const isAdmin = await getAdminCookie();
+  if (!isAdmin) throw new Error('Unauthorized');
+
+  const { data, error } = await supabase
+    .from('image_apis')
+    .select('*')
+    .eq('source', 'modal_service')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Get modal endpoints error:', error);
+    throw new Error('Failed to retrieve modal endpoints');
+  }
+
+  return data || [];
+}
+
+export async function addModalEndpoint(value, account, usageCount = 300) {
+  const isAdmin = await getAdminCookie();
+  if (!isAdmin) throw new Error('Unauthorized');
+
+  if (!value) throw new Error('Endpoint URL is required');
+
+  const { data, error } = await supabase
+    .from('image_apis')
+    .insert({
+      source: 'modal_service',
+      value: value.trim(),
+      account: account ? account.trim() : null,
+      usage_count: usageCount,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('Add modal endpoint error:', error);
+    throw new Error('Failed to add modal endpoint');
+  }
+
+  revalidatePath('/admin/dashboard');
+  return data;
+}
+
+export async function resetModalEndpointCount(id, count = 300) {
+  const isAdmin = await getAdminCookie();
+  if (!isAdmin) throw new Error('Unauthorized');
+
+  const { error } = await supabase
+    .from('image_apis')
+    .update({ usage_count: count })
+    .eq('id', id)
+    .eq('source', 'modal_service');
+
+  if (error) {
+    console.error('Reset modal endpoint count error:', error);
+    throw new Error('Failed to reset endpoint count');
+  }
+
+  revalidatePath('/admin/dashboard');
+  return { success: true };
+}
+
+export async function deleteModalEndpoint(id) {
+  const isAdmin = await getAdminCookie();
+  if (!isAdmin) throw new Error('Unauthorized');
+
+  const { error } = await supabase
+    .from('image_apis')
+    .delete()
+    .eq('id', id)
+    .eq('source', 'modal_service');
+
+  if (error) {
+    console.error('Delete modal endpoint error:', error);
+    throw new Error('Failed to delete endpoint');
+  }
+
+  revalidatePath('/admin/dashboard');
   return { success: true };
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { FaSave, FaSpinner, FaLock, FaCheckCircle, FaEye, FaEyeSlash, FaMicrophone } from 'react-icons/fa';
+import { FaSave, FaSpinner, FaLock, FaCheckCircle, FaEye, FaEyeSlash, FaMicrophone, FaTv } from 'react-icons/fa';
 import { HiSparkles } from 'react-icons/hi2';
 import { updateChannelConfigurations, testPostersHiveConnection } from '../../../../../../lib/actions';
 import toast from 'react-hot-toast';
@@ -46,7 +46,7 @@ const ENGLISH_VOICES = {
   ],
 };
 
-export default function ChannelConfigureForm({ channelId, initialConfig = {}, contentTheme, narratorVoice }) {
+export default function ChannelConfigureForm({ channelId, initialConfig = {}, contentTheme, narratorVoice, description }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [testing, setTesting] = useState(false);
@@ -56,6 +56,7 @@ export default function ChannelConfigureForm({ channelId, initialConfig = {}, co
   
   const [selectedTheme, setSelectedTheme] = useState(contentTheme || 'story_teller');
   const [selectedVoice, setSelectedVoice] = useState(narratorVoice || 'af_heart');
+  const [channelDesc, setChannelDesc] = useState(description || '');
 
   const isConnected = !!initialConfig.postershive?.api_key;
   const isKeyChanged = apiKey !== (initialConfig.postershive?.api_key || '');
@@ -110,7 +111,7 @@ export default function ChannelConfigureForm({ channelId, initialConfig = {}, co
         }
       };
       
-      const result = await updateChannelConfigurations(channelId, fullConfig, selectedTheme, selectedVoice);
+      const result = await updateChannelConfigurations(channelId, fullConfig, selectedTheme, selectedVoice, channelDesc);
       if (result.success) {
         toast.success('Configuration saved successfully!', { id: t });
         router.push(`/dashboard/channels/${channelId}/v1`);
@@ -129,6 +130,34 @@ export default function ChannelConfigureForm({ channelId, initialConfig = {}, co
 
   return (
     <div className="space-y-8">
+      {/* General Settings Card */}
+      <div className="bg-white rounded-2xl p-6 sm:p-8 border border-orange-100 shadow-sm relative overflow-hidden group transition-all duration-300 hover:shadow-md">
+        <div className="absolute top-0 left-0 w-2 h-full bg-emerald-500" />
+        
+        <div className="flex items-center gap-4 mb-6">
+          <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-500 shadow-inner group-hover:scale-110 transition-transform duration-300">
+            <FaTv className="text-xl" />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-gray-900">General Information</h3>
+            <p className="text-sm text-gray-500 mt-0.5">Update your channel's core details and description</p>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <label htmlFor="channel_description" className="text-sm font-semibold text-gray-700">
+            Channel Description
+          </label>
+          <textarea
+            id="channel_description"
+            rows={4}
+            value={channelDesc}
+            onChange={(e) => setChannelDesc(e.target.value)}
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all outline-none resize-y"
+            placeholder="Describe what your channel is about..."
+          />
+        </div>
+      </div>
       {/* Voice & Theme Settings Card */}
       <div className="bg-white rounded-2xl p-6 sm:p-8 border border-orange-100 shadow-sm relative overflow-hidden group transition-all duration-300 hover:shadow-md">
         <div className="absolute top-0 left-0 w-2 h-full bg-violet-500" />

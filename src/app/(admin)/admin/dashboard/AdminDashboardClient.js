@@ -2,12 +2,14 @@
 
 import { useState } from 'react';
 import { HiSparkles } from 'react-icons/hi2';
-import { FaChartBar, FaBolt } from 'react-icons/fa';
+import { FaChartBar, FaBolt, FaServer } from 'react-icons/fa';
 import TriggerSwitchTab from './TriggerSwitchTab';
+import ModalEndpointsTab from './ModalEndpointsTab';
 
 const TABS = [
   { id: 'overview',        label: 'Overview',        icon: <FaChartBar className="text-xs" /> },
   { id: 'trigger-switch',  label: 'Trigger Switch',  icon: <FaBolt className="text-xs" /> },
+  { id: 'modal-endpoints', label: 'Modal Endpoints',  icon: <FaServer className="text-xs" /> },
 ];
 
 export default function AdminDashboardClient({ overviewContent }) {
@@ -53,8 +55,9 @@ export default function AdminDashboardClient({ overviewContent }) {
 
       {/* ── Tab content ── */}
       <div>
-        {activeTab === 'overview'       && overviewContent}
-        {activeTab === 'trigger-switch' && <TriggerSwitchTab />}
+        {activeTab === 'overview'        && overviewContent}
+        {activeTab === 'trigger-switch'  && <TriggerSwitchTab />}
+        {activeTab === 'modal-endpoints' && <ModalEndpointsTab />}
       </div>
     </div>
   );

@@ -12,16 +12,22 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // 1. Generate Channel Topics
 // ─────────────────────────────────────────────────────────────────────────────
-
+import { TONE_CONFIGS, getThemeToneDescription, getToneOnly } from "./tone.js";
 /**
  * @param {{ topicCount: number, topicString: string, description: string }} params
  * @returns {{ systemPrompt: string, userPrompt: string }}
  */
 export function buildGenerateTopicsPrompt({ topicCount, topicString, description }) {
   const systemPrompt = `
-You are an expert content strategist and visual designer for YouTube channels.
+You are an expert content strategist, visual and audio planner and designer for Faceless YouTube channels.
 
-Your task is to generate ${topicCount} highly engaging and viral topic ideas for a YouTube channel based on the channel description provided by the user.
+Your task is to generate ${topicCount} highly engaging and viral sub-niche  content ideas (REFERED HERE AS 'topics') for a YouTube channel based on the channel description provided by the user.
+
+RULES:
+MULTIPLE CONTENT CAN BE GENERATED FROM A SINGLE SUB-NICHE IDEA. there should be enough potential content-titles/content-ideas under each sub-niche idea to generate at least 30 days of content. in other words each sub-niche (topic) should be broad enough to inspire at least 30 unique stories.
+
+
+
 
 Instructions:
 
@@ -49,27 +55,30 @@ Instructions:
   ]
 }
 
-3. Generate exactly ${topicCount} unique topics. No duplicates.
-4. Each topic should be broad enough to inspire multiple video stories.
-   - The topic itself should serve as a foundation for many stories.
-5. The topic must be PUNCHY, compelling, concise, and attention-grabbing. MUST not include COLONS (:).
-6. The description must be detailed and explain why this topic is interesting for a channel audience IN LESS THAN 300 WORDS.
-7. Generate a structured image_generation_theme for each topic:
+3. Generate exactly ${topicCount} unique sub-niche (topics). No duplicates.
+4. Each SUB-NICHE IDEA (topic) should be broad enough to inspire multiple video stories/contents.
+   - The SUB-NICHE IDEA (topic) itself should serve as a foundation for many stories.
+5. The description of each must be detailed to guide an LLM to understand how to create contents for the sub-niche (topic).
+6. Determine a visual concept to guide image generation ai to generate consistent visuals.
+7. Determine background music idea.
+7. Generate a structured image_generation_theme for each topic (NOT More than 60 words or 300 characters):
    - Ensure visual consistency across all stories for this topic.
    - Include art_style, lighting, color_palette, mood, camera_style, detail_level, and texture.
    - The theme should be vivid and specific enough for AI image generation to follow consistently.
-8. DO NOT generate topics that are similar to or overlap IN MEANING OR SEMANTICS with any of these existing topics: ${topicString} SO BE VERY CREATIVE.
+
+8. DO NOT generate sub-niches (topics) that are similar to or overlap IN MEANING OR SEMANTICS with any of these existing topics: ${topicString} SO BE VERY CREATIVE.
 9. Generate a background music prompt for each topic:
-   - The prompt should be enough for AI music generation to follow consistently and generate an instrumental music with no vocals befitting for stories generated from the topic.
-   - The length of the music must be 1 minute.
+   - The prompt should be detailed enough for AI music generation to follow consistently and generate an instrumental music with no vocals befitting for contents generated from the sub-niche (topic).
+   - The length of the music must be 2 minutes.
    - The music should be loopable. (the beginning of the music must be able to align seamlessly with the end of the music)
    - The music must not contain drum beat, piano and JAZZ. BUT NO VOCALS
+   - The number of characters for the background music prompt MUST be less than 300 characters.
 10. Generate a story thumbnail prompt for each topic:
-   - The prompt should be enough for AI image generation to follow consistently and generate similar thumbnails for all the stories within the topic.
+   - The prompt should be detailed enough for AI image generation to follow consistently and generate similar thumbnails for all the stories within the topic.
    - The thumbnail should be visually appealing and attention-grabbing.
    - The thumbnail should be visually consistent with the image_generation_theme.
 
-Use your max creativity to produce viral, audience-engaging ideas while strictly following the JSON structure above.
+Use your max creativity to produce real and authentic sub-niche (topic) ideas while strictly following the JSON structure above.
 `.trim();
 
   return { systemPrompt, userPrompt: description };
@@ -80,69 +89,55 @@ Use your max creativity to produce viral, audience-engaging ideas while strictly
 // 2. Generate a Single Story
 // ─────────────────────────────────────────────────────────────────────────────
 
-function getThemeToneDescription(theme) {
-  if (theme === 'story_teller') {
-    return 'Adopt a STORY TELLER tone: Dramatic, narrative-driven, using suspense, emotional hooks, and rich descriptive storytelling to captivate the listener. Make the story feel alive, focusing on dramatic beats, imagery, and immersive hooks.';
-  }
-  if (theme === 'teacher') {
-    return 'Adopt a TEACHER tone: Educational, highly structured, clear, informative, utilizing explanatory analogies and simple step-by-step breakdowns. Focus on teaching the listener, explaining core concepts clearly and logically.';
-  }
-  // Default/narrator tone
-  return 'Adopt a NARRATOR tone: Steady, professional, objective, clear, informative, and highly descriptive. Provide a clear and neutral narration of the events or topics.';
-}
 
 /**
  * @param {{ topicName: string, topicDescription: string, alreadyCreatedTitlesString: string, contentTheme?: string, storyTitle?: string, storyPromptDescription?: string }} params
  * @returns {{ systemPrompt: string, userPrompt: string }}
  */
+
 export function buildGenerateStoryPrompt({ topicName, topicDescription, alreadyCreatedTitlesString, contentTheme, storyTitle, storyPromptDescription }) {
   const toneDesc = getThemeToneDescription(contentTheme);
   const systemPrompt = `
-You are a very intelligent and creative AI content writer for faceless YouTube channels. 
-When given a topic name, you would generate a content idea from the topic and generate the full content.
-Generate ONE viral, highly engaging content (not nessarily a story but in this context called a 'story') that lasts about 20 minutes.
-You are to structure the content with a clear introduction followed by several key points of discussion, ensuring that each point logically builds upon the previous one to create a smooth and progressive flow of the overall content idea.
+You are a viral content writer for faceless YouTube channels.
 
-Tone & Persona Instruction:
+Your job: generate ONE complete, highly engaging content piece (~35 minutes of narration) drawn from the given sub-niche (topic).
+
+━━━ TONE & CONTENT STRUCTURE ━━━
 ${toneDesc}
 
-Rules:
+━━━ CONTENT RULES ━━━
+1. Draw the content idea strictly from the sub-niche (topic).
+${storyTitle
+      ? `2. The title MUST be EXACTLY: "${storyTitle}". Every word of the content must serve this title.`
+      : `2. DO NOT produce content that overlaps in meaning, context, or semantics with any of these already-created titles: ${alreadyCreatedTitlesString}
+             
+             - Title must be punchy and must NOT contain a colon (:)
+                  - Example: Instead of "How Machiavelli's Forbidden Psychology Builds Generational Wealth", produce: "Builds Generational Wealth - Forbidden Psychology"
+             - DO NOT use emojis in titles
+             - DO NOT use single quotes (') in titles
+      `
+    }
 
-1. The content idea must be drawn from the topic.
-${storyTitle ? `2. The story/content title must be EXACTLY: "${storyTitle}". Make sure all content is perfectly relevant to this title.` : `2. The following is the previous content created from the topic ${alreadyCreatedTitlesString}. DO NOT come up with content/story that relate in meaning, context or sematics with any of those titles`}
-3. Title must be punchy, and MUST NOT include colons (:).
-${storyPromptDescription ? `\nCRITICAL USER REQUIREMENT: You MUST generate this story/content based on the following description/instruction: "${storyPromptDescription}"\n` : ''}
-4. a content must:
-   - Begin with a clear "introduction" section.
-   - Include multiple points as an array under "points".
-   - Each point must have:
-       - "point_title" relevant to the story title.
-       - "story" explaining that point in detail.(this must not neccesarily a story)
-   - Use simple, clear language.
-   - Be highly engaging and captivating.
-   - Be no less than 800 words in total.
-4. Focus on ONE central story entity.
-5. story_description must be captivating,intriguing and less than 150 words. after the story descriptions, append some viral hashtags related to the story.(do not use hash tags like #story #youtubeshorts etc..)
- for a story titled : "Become Dangerously Self-Educated | The 4 Japanese Principles"
+${storyPromptDescription ? `\n⚠️ CRITICAL USER REQUIREMENT: Base the entire content on this instruction: "${storyPromptDescription}"\n` : ''}
+4. The "introduction" field must correspond exactly to the FIRST section defined in the CONTENT STRUCTURE above (e.g. Hook + Scene-Set / Learning Promise / Lead with the Verdict — depending on tone).
+5. Each entry in "points" must correspond to ONE subsequent section from the CONTENT STRUCTURE, in order.
+   - "point_title" = the section name (e.g. "Backstory + Stakes", "Core Concept + Analogy + Example", "Facts + Evidence").
+   - "story" = the full written content for that section. Minimum 150 words per point.
+   - The final point must correspond to the CLOSING section defined in the structure (e.g. Emotional Close / Recap + Call to Action / Measured Close).
+6. Total word count across introduction + all points must be NO LESS than 1000 words.
+7. "story_description": a captivating, intriguing YouTube description under 150 words, followed by viral hashtags (no generic tags like #story or #youtubeshorts).
+8. You must include Hashtages (very important). has tags ideas should be drawn from content theme, sub-niche.
 
-Example story description:
-for a story titled - "4 Japanese Principles that can reshape your life" example of a story_description is:
-"Embark on a transformative journey as we uncover the profound wisdom of the 4 Japanese Principles that can reshape your life. In this eye-opening exploration, we delve into the secrets of self-education, personal growth, and the path to becoming dangerously self-adept. Discover how these timeless Japanese insights can unlock your potential, enhance your skills, and guide you toward a more fulfilling and empowered existence. Prepare to be inspired, enlightened, and motivated to embrace a new paradigm of self-improvement."
-#JapanesePrinciples #SelfEducation #PersonalGrowth #SelfImprovement #SelfMastery #SelfAwareness #SelfDiscovery #SelfDevelopment #SelfMotivation #SelfDiscipline #SelfReliance #SelfConfidence #SelfImprovementJourney #SelfImprovementTips #SelfImprovementMotivation #SelfImprovementMindset #SelfImprovementHacks #SelfImprovementQuotes #SelfImprovementQuotesMotivation #SelfImprovementQuotesInspiration
+Example story_description for "4 Japanese Principles that can reshape your life":
+"Embark on a transformative journey as we uncover the profound wisdom of the 4 Japanese Principles that can reshape your life. Discover how these timeless insights can unlock your potential and guide you toward a more fulfilling existence."
+#JapanesePrinciples #SelfEducation #PersonalGrowth #SelfImprovement #SelfMastery
 
-
-
-
-
-
-6. Align all content closely with the title.
-7. Do not wrap JSON in markdown or backticks.
-8. Do not include explanations or extra text outside JSON.
-9. Return ONLY valid JSON in this exact structure:
+━━━ OUTPUT FORMAT ━━━
+Return ONLY valid JSON. No markdown, no backticks, no extra text.
 
 {
   "title": "string",
-  "story_description": "string"
+  "story_description": "string",
   "content": {
     "introduction": "string",
     "points": [
@@ -153,7 +148,7 @@ for a story titled - "4 Japanese Principles that can reshape your life" example 
     ]
   }
 }
-Here is the topic details
+
 Topic details:
 topic_name: ${topicName}
 topic_description: ${topicDescription}
@@ -179,29 +174,39 @@ ${storyPromptDescription ? `story_prompt_description: ${storyPromptDescription}`
  * @returns {{ systemPrompt: string, userPrompt: string }}
  */
 export function buildEnhanceStorySectionPrompt({ story_title, story, section_title, section_content, contentTheme }) {
-  const toneDesc = getThemeToneDescription(contentTheme);
+  const toneDesc = getToneOnly(contentTheme);
   const systemPrompt = `
 You are a professional content writer specializing in faceless YouTube channels.
-Enhance a section of a content to make it more engaging, and well aligned for what section of the overall content.
 
-Tone & Persona Instruction:
+Your job: rewrite and enhance ONE section of an existing content piece to make it more engaging, more aligned with its role in the overall content, and perfectly consistent with the tone below.
+
+━━━ TONE INSTRUCTION ━━━
 ${toneDesc}
 
-Return ONLY valid JSON:
+━━━ ENHANCEMENT RULES ━━━
+1. The section's PURPOSE is defined by its title ("section_title"). Enhance toward that purpose:
+   - If it is an opening section (Hook, Learning Promise, Lead with Verdict): ensure it grabs attention immediately.
+   - If it is a body section (Rising Tension, Core Concept, Facts + Evidence, etc.): deepen the content, add detail, strengthen the narrative or argument.
+   - If it is a closing section (Emotional Close, Recap, Measured Close): ensure it lands with appropriate weight and closure.
+2. Do NOT change the section's core meaning or introduce facts not present in the original.
+3. Do NOT add a new title — the title is already known; only return it as-is in the output.
+4. The enhanced content must be noticeably longer and richer than the input — aim for at least 1.5× the original word count.
+5. Maintain coherence with the full story context provided.
+
+━━━ OUTPUT FORMAT ━━━
+Return ONLY valid JSON. No markdown, no backticks, no extra text.
 
 {
   "title": "string",
-  "content": "string" //the improved version of the section_content
+  "content": "string"
 }
-
-Do not include anything outside JSON. Do not wrap in markdown or code fences.
 `.trim();
 
   const userPrompt = `
 story_title: ${story_title}
-story: ${story}
 section_title: ${section_title}
 section_content: ${section_content}
+full_story_context: ${story}
 `.trim();
 
   return { systemPrompt, userPrompt };
@@ -249,68 +254,65 @@ THEME: ${imageTheme}
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * @param {{ storyTitle: string, section: string, storyContent: string, contentTheme?: string }} params
+ * @param {{ storyTitle: string, section: string, storyContent: string, contentTheme?: string, imageGenerationTheme?: string }} params
  * @returns {{ systemPrompt: string, userPrompt: string }}
  */
-export function buildGeneratePointScriptPrompt({ storyTitle, section, storyContent, contentTheme }) {
-  const toneDesc = getThemeToneDescription(contentTheme);
+export function buildGeneratePointScriptPrompt({ storyTitle, section, storyContent, contentTheme, imageGenerationTheme }) {
+  const toneDesc = getToneOnly(contentTheme);
   const systemPrompt = `
-You are a professional storytelling assistant.
+You are a professional cinematic scriptwriter for faceless YouTube videos.
 
-You will receive a full story and a specific section to work on.
+Your job: take ONE section of a written content piece and break it into a sequence of cinematic scenes, each with voice narration and image setups ready for video production.
 
-Your task:
-- Break the section into multiple cinematic scenes.
-- Decide the number of images per scene.
-- Ensure the image_setup length equals numberOfImages.
-
-Tone & Persona Instruction:
+━━━ TONE INSTRUCTION ━━━
 ${toneDesc}
-Specifically, write the 'voiceText' of the scenes adopting this tone.
+Apply this tone exclusively to the "voiceText" of every scene.
 
-Return ONLY valid JSON.
+${imageGenerationTheme ? `━━━ IMAGE GENERATION THEME ━━━
+All generated "aiImagePrompts" must strictly conform to the following global aesthetic theme:
+${imageGenerationTheme}
 
-Structure:
+Incorporate elements of this theme (e.g. its art style, lighting, color palette, mood, camera style, details, texture) naturally into the visual prompts for each image.` : ''}
+
+━━━ SCENE RULES ━━━
+1. Break the section into as many scenes as naturally fit — do not force a fixed number.
+2. Each scene should cover ONE coherent visual moment or narrative beat from the section.
+3. "voiceText" must be written in the tone above — engaging, vivid, production-ready. It must NOT be a summary; it must be the actual words to be spoken.
+4. "numberOfImages" must equal the length of the "image_setup" array — enforce this strictly.
+5. "duration" is the total scene duration in seconds. The sum of all "imageDuration" values in "image_setup" must equal "duration".
+6. "aiImagePrompts" must be cinematic, highly descriptive, and visually specific (written for an AI image model, not a human) in must be less than 300 characters. ${imageGenerationTheme ? 'They must strictly embody the IMAGE GENERATION THEME above. Include lighting, subject, angle, atmosphere matching the theme.' : 'Include lighting, subject, angle, atmosphere.'}
+7. "transition_type" must be one of: cut, fade, crossfade, fade_to_black.
+8. Distribute screen time intentionally: high-tension or emotionally heavy moments get more images and longer durations.
+9. Images must aling with the contnet/context of the voice text (what is being spoken in the scene). 
+
+━━━ OUTPUT FORMAT ━━━
+Return ONLY valid JSON. No markdown, no backticks, no extra text.
 
 {
   "scenes": [
     {
       "sceneNumber": number,
-      "title": string,
+      "title": "string",
       "duration": number,
-      "voiceText": string,
+      "voiceText": "string",
       "numberOfImages": number,
       "image_setup": [
         {
           "imageDuration": number,
-          "aiImagePrompts": string,
-          "visualDescription": string,
-          "transition_type": string
+          "aiImagePrompts": "string",
+          "visualDescription": "string",
+          "transition_type": "string"
         }
       ]
     }
   ]
 }
-
-Rules:
-- duration must be in seconds
-- imageDuration must be integer
-- image_setup length must equal numberOfImages
-- transitions allowed: cut, fade, crossfade, fade_to_black
-- aiImagePrompts must be cinematic and highly descriptive
-- voiceText must be engaging and emotional
-- imageDuration values should roughly match scene duration
 `.trim();
 
   const userPrompt = `
-Story Title:
-${storyTitle}
-
-Section To Expand:
-${section}
-
-Full Story Context:
-${storyContent}
+story_title: ${storyTitle}
+section_to_expand: ${section}
+full_story_context: ${storyContent}
 `.trim();
 
   return { systemPrompt, userPrompt };
@@ -327,9 +329,9 @@ ${storyContent}
  */
 export function buildEnhanceImagePrompt({ storyContent, sceneNumber, imageNumber, originalPrompt, imageGenerationTheme }) {
   const systemPrompt = `
-You are an expert cinematic AI image prompt engineer.
+You are an expert AI image prompt engineer.
 
-Enhance the prompt visually while keeping its meaning.
+Imporve the provided prompt visually while keeping its meaning.
 
 Return JSON:
 
@@ -353,6 +355,8 @@ ${originalPrompt}
 
 IMAGE_GENERATION_THEME:
 ${imageGenerationTheme}
+
+the modified prompt must not be more than 300 characters.
 `.trim();
 
   return { systemPrompt, userPrompt };

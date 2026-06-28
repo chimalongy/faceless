@@ -2,13 +2,13 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { FaCheck, FaTimes, FaSpinner, FaImage, FaFont, FaSlidersH, FaAlignLeft, FaAlignCenter, FaAlignRight, FaArrowUp, FaArrowDown } from 'react-icons/fa';
+import { FaCheck, FaTimes, FaSpinner, FaImage, FaFont, FaSlidersH, FaAlignLeft, FaAlignCenter, FaAlignRight, FaArrowUp, FaArrowDown, FaFileAlt } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import { updateTopicConfig } from '../../lib/actions';
 
 export default function EditTopicConfigForm({ topic, channelId }) {
   const router = useRouter();
-  const [imageGenerationTheme, setImageGenerationTheme] = useState(topic.image_generation_theme || '');
+  const [description, setDescription] = useState(topic.description || '');
   const [storyThumbnailPrompt, setStoryThumbnailPrompt] = useState(topic.story_thumbnail_prompt || '');
   const [selectedFont, setSelectedFont] = useState(topic.thumbnail_font || 'Inter-Bold.ttf');
   
@@ -16,6 +16,25 @@ export default function EditTopicConfigForm({ topic, channelId }) {
   const [thumbnailTextSize, setThumbnailTextSize] = useState(topic.thumbnail_text_size || 7.5);
   const [thumbnailTextAlign, setThumbnailTextAlign] = useState(topic.thumbnail_text_align || 'left');
   const [thumbnailTextPosition, setThumbnailTextPosition] = useState(topic.thumbnail_text_position || 'center');
+
+  // Parse existing image generation theme JSON
+  let parsedTheme = {};
+  try {
+    if (topic.image_generation_theme) {
+      parsedTheme = JSON.parse(topic.image_generation_theme);
+    }
+  } catch (err) {
+    // Fallback if not valid JSON
+    parsedTheme = { art_style: topic.image_generation_theme || '' };
+  }
+
+  const [artStyle, setArtStyle] = useState(parsedTheme.art_style || '');
+  const [lighting, setLighting] = useState(parsedTheme.lighting || '');
+  const [colorPalette, setColorPalette] = useState(parsedTheme.color_palette || '');
+  const [mood, setMood] = useState(parsedTheme.mood || '');
+  const [cameraStyle, setCameraStyle] = useState(parsedTheme.camera_style || '');
+  const [detailLevel, setDetailLevel] = useState(parsedTheme.detail_level || '');
+  const [texture, setTexture] = useState(parsedTheme.texture || '');
   
   const [isPending, startTransition] = useTransition();
 
@@ -35,7 +54,20 @@ export default function EditTopicConfigForm({ topic, channelId }) {
     const formData = new FormData();
     formData.set('topicId', topic.id);
     formData.set('channelId', channelId);
-    formData.set('image_generation_theme', imageGenerationTheme.trim());
+    formData.set('description', description.trim());
+    
+    const themeObj = {
+      art_style: artStyle.trim(),
+      lighting: lighting.trim(),
+      color_palette: colorPalette.trim(),
+      mood: mood.trim(),
+      camera_style: cameraStyle.trim(),
+      detail_level: detailLevel.trim(),
+      texture: texture.trim()
+    };
+    const isThemeEmpty = !artStyle.trim() && !lighting.trim() && !colorPalette.trim() && !mood.trim() && !cameraStyle.trim() && !detailLevel.trim() && !texture.trim();
+    formData.set('image_generation_theme', isThemeEmpty ? '' : JSON.stringify(themeObj));
+
     formData.set('story_thumbnail_prompt', storyThumbnailPrompt.trim());
     formData.set('thumbnail_font', selectedFont);
     formData.set('thumbnail_text_size', String(thumbnailTextSize));
@@ -69,6 +101,23 @@ export default function EditTopicConfigForm({ topic, channelId }) {
       {/* ── LEFT COLUMN: EDIT FORM ── */}
       <div className="lg:col-span-2 space-y-6">
         <div className="bg-white rounded-2xl border border-gray-100 p-6 sm:p-7 shadow-sm space-y-6">
+          <div className="space-y-2">
+            <label className="text-[13px] font-bold text-stone-700 uppercase tracking-wider flex items-center gap-2">
+              <FaFileAlt className="text-orange-500 text-xs" />
+              Topic Description
+            </label>
+            <p className="text-xs text-stone-400">
+              A description of this topic, used to guide story generation.
+            </p>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={8}
+              placeholder="Describe what this topic is about..."
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-[14px] text-stone-900 leading-relaxed placeholder:text-stone-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all resize-y min-h-[200px]"
+            />
+          </div>
+
           {/* Section 1: Thumbnail Prompt */}
           <div className="space-y-2">
             <label className="text-[13px] font-bold text-stone-700 uppercase tracking-wider flex items-center gap-2">
@@ -88,21 +137,95 @@ export default function EditTopicConfigForm({ topic, channelId }) {
           </div>
 
           {/* Section 2: Generation Theme */}
-          <div className="space-y-2">
-            <label className="text-[13px] font-bold text-stone-700 uppercase tracking-wider flex items-center gap-2">
-              <FaSlidersH className="text-orange-500 text-xs" />
-              Image Generation Theme
-            </label>
-            <p className="text-xs text-stone-400">
-              Defines the global artistic style, mood, and grading of generated scenes.
-            </p>
-            <textarea
-              value={imageGenerationTheme}
-              onChange={(e) => setImageGenerationTheme(e.target.value)}
-              rows={10}
-              placeholder="e.g. Cinematic lighting, photorealistic, 8k resolution, dark horror aesthetic..."
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-[14px] text-stone-900 leading-relaxed placeholder:text-stone-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all resize-y min-h-[150px]"
-            />
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <label className="text-[13px] font-bold text-stone-700 uppercase tracking-wider flex items-center gap-2">
+                <FaSlidersH className="text-orange-500 text-xs" />
+                Image Generation Theme
+              </label>
+              <p className="text-xs text-stone-400">
+                Defines the specific aesthetic attributes used to generate consistent visuals.
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-stone-600">Art Style</label>
+                <textarea
+                  value={artStyle}
+                  onChange={(e) => setArtStyle(e.target.value)}
+                  rows={2}
+                  placeholder="e.g. Minimalist and symbolic"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all resize-y min-h-[60px]"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-stone-600">Lighting</label>
+                <textarea
+                  value={lighting}
+                  onChange={(e) => setLighting(e.target.value)}
+                  rows={2}
+                  placeholder="e.g. Soft, diffused light with subtle highlights"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all resize-y min-h-[60px]"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-stone-600">Color Palette</label>
+                <textarea
+                  value={colorPalette}
+                  onChange={(e) => setColorPalette(e.target.value)}
+                  rows={2}
+                  placeholder="e.g. Earthy tones with accents of deep blue and bronze"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all resize-y min-h-[60px]"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-stone-600">Mood</label>
+                <textarea
+                  value={mood}
+                  onChange={(e) => setMood(e.target.value)}
+                  rows={2}
+                  placeholder="e.g. Serene and contemplative"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all resize-y min-h-[60px]"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-stone-600">Camera Style</label>
+                <textarea
+                  value={cameraStyle}
+                  onChange={(e) => setCameraStyle(e.target.value)}
+                  rows={2}
+                  placeholder="e.g. Close-up and macro shots with shallow depth of field"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all resize-y min-h-[60px]"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-stone-600">Detail Level</label>
+                <textarea
+                  value={detailLevel}
+                  onChange={(e) => setDetailLevel(e.target.value)}
+                  rows={2}
+                  placeholder="e.g. High detail on symbolic elements"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all resize-y min-h-[60px]"
+                />
+              </div>
+
+              <div className="space-y-1 md:col-span-2">
+                <label className="text-xs font-semibold text-stone-600">Texture</label>
+                <textarea
+                  value={texture}
+                  onChange={(e) => setTexture(e.target.value)}
+                  rows={2}
+                  placeholder="e.g. Rough stone surfaces contrasted with smooth, polished metals"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all resize-y min-h-[60px]"
+                />
+              </div>
+            </div>
           </div>
 
           {/* Divider */}

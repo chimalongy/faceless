@@ -16,7 +16,7 @@ export const generateScriptTask = task({
 
     const { data: story, error } = await supabase
       .from("stories")
-      .select("content, title, channel_id")
+      .select("content, title, channel_id, topic_id")
       .eq("id", storyId)
       .single();
 
@@ -41,6 +41,22 @@ export const generateScriptTask = task({
     const contentTheme = channel?.content_theme || "narrator";
     logger.info("🎬 Channel theme fetched", { contentTheme });
 
+    // Fetch topic image generation theme
+    let imageGenerationTheme = null;
+    if (story.topic_id) {
+      const { data: topic, error: topicError } = await supabase
+        .from("topics")
+        .select("image_generation_theme")
+        .eq("id", story.topic_id)
+        .single();
+      
+      if (topicError) {
+        logger.warn("Failed to fetch topic theme for script generation", { topicError });
+      } else {
+        imageGenerationTheme = topic?.image_generation_theme || null;
+      }
+    }
+
     const content =
       typeof story.content === "string"
         ? JSON.parse(story.content)
@@ -56,6 +72,7 @@ export const generateScriptTask = task({
           storyId,
           section: content.introduction,
           contentTheme,
+          imageGenerationTheme,
         }
       },
       ...content.points.map((point: any) => ({
@@ -63,6 +80,7 @@ export const generateScriptTask = task({
           storyId,
           section: point.story,
           contentTheme,
+          imageGenerationTheme,
         }
       }))
     ];

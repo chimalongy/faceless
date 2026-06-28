@@ -3,7 +3,7 @@ import { supabase } from '../supabase';
 export async function getImageGenerationUrls(targetkeys) {
     const { data, error } = await supabase
         .from('image_apis')
-        .select('id, source, value')
+        .select('id, source, value, usage_count')
         .eq("source", targetkeys); // ✅ use variable
 
 

@@ -333,11 +333,11 @@ export async function llmEnhanceThumbnailPrompt({ storyTitle, storyContent, base
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * @param {{ storyTitle: string, section: string, storyContent: string, contentTheme?: string }} params
+ * @param {{ storyTitle: string, section: string, storyContent: string, contentTheme?: string, imageGenerationTheme?: string }} params
  * @returns {Promise<{ scenes: Array<object> }>}
  */
-export async function llmGeneratePointScript({ storyTitle, section, storyContent, contentTheme }) {
-    const { systemPrompt, userPrompt } = buildGeneratePointScriptPrompt({ storyTitle, section, storyContent, contentTheme });
+export async function llmGeneratePointScript({ storyTitle, section, storyContent, contentTheme, imageGenerationTheme }) {
+    const { systemPrompt, userPrompt } = buildGeneratePointScriptPrompt({ storyTitle, section, storyContent, contentTheme, imageGenerationTheme });
     return callLLM(systemPrompt, userPrompt);
 }
 
